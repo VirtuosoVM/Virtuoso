@@ -16,7 +16,7 @@ export interface CommandCall {
             cased_args: string[],
             commands: { [key: string]: any },
             config: { [key: string]: any },
-            powered_vms: { [key: string]: any },
+            powered_vms: string[],
         }
     ): void
 }
