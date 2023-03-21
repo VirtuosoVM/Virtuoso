@@ -21,6 +21,7 @@ console.log(" --- Initialising commands... --- ");
 
 const cmd_dir = fs.readdirSync("./dist/src/cmd/");
 
+// load commands in the cmd directory to the commands object
 for (const filename of cmd_dir) {
     if (filename.endsWith(".js")) {
         const cmd_name = filename.replace(/.js$/, "");
@@ -110,7 +111,7 @@ client.on("messageCreate", async (message: Message): Promise<void> => {
             return;
         }
 
-        const cmd = message.content.toLowerCase().trimStart().replace(ignore_start, "").trimStart().split(" ")[0];
+        const cmd = message.content.toLowerCase().trimStart().replace(ignore_start, "").trimStart().split(" ")[0]; // extract command
         const args = message.content.toLowerCase().trimStart().trimStart().split(" ").slice(1); // extract arguments
         const cased_args = message.content.trimStart().replace(ignore_start, "").trimStart().split(" ").slice(1); // extract arguments
 
