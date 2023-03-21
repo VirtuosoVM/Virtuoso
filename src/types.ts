@@ -1,6 +1,10 @@
-import type { Message, Client } from "discord.js";
+import type * as Discord from "discord.js";
 
 export type Int = number & { __int__: void };
+
+export type Entries<T> = {
+    [K in keyof T]: [K, T[K]];
+}[keyof T][];
 
 export interface UserData {
     id: bigint,
@@ -8,13 +12,15 @@ export interface UserData {
 
 export interface CommandCall {
     (
-        message: Message,
+        message: Discord.Message,
         data: {
-            Discord: any,
-            client: Client,
+            Discord: typeof Discord,
+            client: Discord.Client,
             args: string[],
             cased_args: string[],
-            commands: { [key: string]: any }
+            commands: { [key: string]: any },
+            config: { [key: string]: any },
+            powered_vms: { [key: string]: any },
         }
     ): void
 }

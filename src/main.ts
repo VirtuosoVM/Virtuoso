@@ -56,6 +56,7 @@ client.on("messageCreate", async (message: Message): Promise<void> => {
     }
 
     const disabled_commands = [];
+    const powered_vms = [];
 
     if (message.guild === null) {
         message.channel.send("This bot does not support DMs. Please return to the channel where the bot is active.");
@@ -121,7 +122,9 @@ client.on("messageCreate", async (message: Message): Promise<void> => {
                 cased_args: cased_args,
                 client: client,
                 Discord: Discord,
-                commands: commands
+                commands: commands,
+                config: config,
+                powered_vms: powered_vms,
             };
 
             const call: CommandCall = (m, d) => { // wrap in function to enforce type checking in IDE
