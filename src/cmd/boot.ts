@@ -53,11 +53,16 @@ const call: CommandCall = async (message, data) => {
 
     // set the vmrun options if overridden in the config
     let VMRun_mod = VMRun;
+    let disconnect_sound = config.vmware["default_options"]["disconnect_sound"];
 
     if (vm["options_override"]) {
         const overriden_vmrun_opts = {};
         edit_vmrun_opts(vm.options_override, overriden_vmrun_opts);
         VMRun_mod = VMRun_mod.withModifiedOptions(overriden_vmrun_opts);
+
+        if (vm.options_override["disconnect_sound"]) {
+            disconnect_sound = vm.options_override["disconnect_sound"];
+        }
     }
 
     // start the VM and update the status message
@@ -75,6 +80,14 @@ const call: CommandCall = async (message, data) => {
 
         boot_msg.edit({ embeds: [booted_embed] });
 
+        if (disconnect_sound) {
+            // disconnect the sound device from the VM
+            VMRun_mod.vmrun("disconnectNamedDevice", [vmx_path, "sound"]).then(() => {
+                console.log(`Disconnected sound device from VM ${vm_id}.`);
+            }).catch((err) => {
+                console.log(`Error disconnecting sound device from VM ${vm_id}: ${err}`);
+            });
+        }
     }).catch((err) => {
         booting_vms.splice(booting_vms.indexOf(vm_id), 1); // remove from booting list
 

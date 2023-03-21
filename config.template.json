@@ -15,7 +15,8 @@
             "guest_creds": {
                 "username": "guest os username or blank",
                 "password": "password or blank"
-            }
+            },
+            "disconnect_sound": true
         },
         "vm_list": {
             "example": {
