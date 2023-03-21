@@ -18,7 +18,9 @@ export interface CommandCall {
             commands: { [key: string]: any },
             config: { [key: string]: any },
             powered_vms: string[],
+            booting_vms: string[],
             VMRun: typeof VMRun,
+            helper_functions: { [key: string]: Function },
         }
     ): void
 }

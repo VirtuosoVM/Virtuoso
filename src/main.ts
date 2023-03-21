@@ -37,7 +37,8 @@ console.log(" === Config validated basically. === \n");
 
 console.log(" --- Initialising VMRun options... --- ");
 
-const vmrun_opts = {};
+
+const vmrun_options = {};
 
 // must have host type
 if (!config.vmware["host_type"]) {
@@ -45,32 +46,44 @@ if (!config.vmware["host_type"]) {
     //pmx.issue(new Error("FATAL: No host type specified in config. Aborting..."));
     process.exit(1);
 } else {
-    vmrun_opts["hostType"] = config.vmware.host_type;
+    vmrun_options["hostType"] = config.vmware.host_type;
 }
 
 // optional vmrun path
 if (config.vmware["vmrun_path"]) {
-    vmrun_opts["vmrunPath"] = config.vmware.vmrun_path;
+    let vr_path = config.vmware.vmrun_path;
+
+    // if the path contains spaces, wrap it in quotes
+    if (vr_path.indexOf(" ") !== -1) {
+        vr_path = `"${vr_path}"`;
+    }
+
+    vmrun_options["vmrunPath"] = vr_path;
 }
 
-// optional default options with optional fields for vm_password and guest_creds
-if (config.vmware["default_options"]) {
-    if (config.vmware.default_options["vm_password"]) {
+// helper function that will be reused for overriding default options
+const edit_vmrun_opts = (input_opts: { [key: string]: any }, vmrun_opts: { [key: string]: any }) => {
+    // optional fields for vm_password and guest_creds
+    if (input_opts["vm_password"]) {
         vmrun_opts["vmPassword"] = config.vmware.default_options.vm_password;
     }
 
-    if (config.vmware.default_options["guest_creds"]) {
-        if (config.vmware.default_options.guest_creds["username"]) {
-            vmrun_opts["guestUsername"] = config.vmware.default_options.guest_creds.username;
+    if (input_opts["guest_creds"]) {
+        if (input_opts.guest_creds["username"]) {
+            vmrun_opts["guestUsername"] = input_opts.guest_creds.username;
         }
 
-        if (config.vmware.default_options.guest_creds["password"]) {
-            vmrun_opts["guestPassword"] = config.vmware.default_options.guest_creds.password;
+        if (input_opts.guest_creds["password"]) {
+            vmrun_opts["guestPassword"] = input_opts.guest_creds.password;
         }
     }
+};
+
+if (config.vmware["default_options"]) {
+    edit_vmrun_opts(config.vmware.default_options, vmrun_options);
 }
 
-VMRun.setOptions(vmrun_opts);
+VMRun.setOptions(vmrun_options);
 
 console.log(" === VMRun options initialised. === \n");
 
@@ -111,6 +124,10 @@ client.on("ready", async (): Promise<void> => {
     }
 });
 
+const helper_functions = {
+    "edit_vmrun_opts": edit_vmrun_opts,
+};
+
 client.on("messageCreate", async (message: Message): Promise<void> => {
     if (message.author.bot) {
         return;
@@ -118,6 +135,7 @@ client.on("messageCreate", async (message: Message): Promise<void> => {
 
     const disabled_commands = [];
     const powered_vms = [];
+    const booting_vms = [];
 
     if (message.guild === null) {
         message.channel.send("This bot does not support DMs. Please return to the channel where the bot is active.");
@@ -186,7 +204,9 @@ client.on("messageCreate", async (message: Message): Promise<void> => {
                 commands: commands,
                 config: config,
                 powered_vms: powered_vms,
+                booting_vms: booting_vms,
                 VMRun: VMRun,
+                helper_functions: helper_functions,
             };
 
             const call: CommandCall = (m, d) => { // wrap in function to enforce type checking in IDE

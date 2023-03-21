@@ -23,7 +23,6 @@
                 "description": "Description of the VM",
                 "vmx": "path to the vmx file",
                 "options_override": {
-                    "vm_password": "password to decrypt the vm or blank",
                     "guest_creds": {
                         "username": "guest os username or blank",
                         "password": "password or blank"
