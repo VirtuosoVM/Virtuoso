@@ -29,7 +29,7 @@
     "rimraf": "^4.4.0",
     "source-map-support": "^0.5.21",
     "tx2": "^1.0.5",
-    "vmrun": "^1.0.10"
+    "vmrun": "github:obfuscatedgenerated/node-vmrun"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.56.0",
