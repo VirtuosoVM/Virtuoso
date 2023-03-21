@@ -1,4 +1,5 @@
 import type * as Discord from "discord.js";
+import type * as VMRun from "vmrun";
 
 export type Int = number & { __int__: void };
 
@@ -17,6 +18,7 @@ export interface CommandCall {
             commands: { [key: string]: any },
             config: { [key: string]: any },
             powered_vms: string[],
+            VMRun: typeof VMRun,
         }
     ): void
 }

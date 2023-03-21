@@ -11,9 +11,69 @@ import { CommandCall } from "./types";
 const rate_limiter = new RateLimiter(1, 2000); // 1 command per 2 seconds
 const limit_limiter = new RateLimiter(1, 1000); // 1 notification of being limited per second
 
+import * as VMRun from "vmrun";
+
 import * as fs from "fs";
 
 import * as pmx from "tx2";
+
+console.log(" --- Validating basic config... --- ");
+
+// must have discord config (fields not checked here)
+if (!config["discord"]) {
+    console.error("FATAL: No discord config specified. Aborting...");
+    //pmx.issue(new Error("FATAL: No discord config specified. Aborting..."));
+    process.exit(1);
+}
+
+// must have vmware config (fields not checked here)
+if (!config["vmware"]) {
+    console.error("FATAL: No vmware config specified. Aborting...");
+    //pmx.issue(new Error("FATAL: No vmware config specified. Aborting..."));
+    process.exit(1);
+}
+
+console.log(" === Config validated basically. === \n");
+
+console.log(" --- Initialising VMRun options... --- ");
+
+const vmrun_opts = {};
+
+// must have host type
+if (!config.vmware["host_type"]) {
+    console.error("FATAL: No host type specified in config. Aborting...");
+    //pmx.issue(new Error("FATAL: No host type specified in config. Aborting..."));
+    process.exit(1);
+} else {
+    vmrun_opts["hostType"] = config.vmware.host_type;
+}
+
+// optional vmrun path
+if (config.vmware["vmrun_path"]) {
+    vmrun_opts["vmrunPath"] = config.vmware.vmrun_path;
+}
+
+// optional default options with optional fields for vm_password and guest_creds
+if (config.vmware["default_options"]) {
+    if (config.vmware.default_options["vm_password"]) {
+        vmrun_opts["vmPassword"] = config.vmware.default_options.vm_password;
+    }
+
+    if (config.vmware.default_options["guest_creds"]) {
+        if (config.vmware.default_options.guest_creds["username"]) {
+            vmrun_opts["guestUsername"] = config.vmware.default_options.guest_creds.username;
+        }
+
+        if (config.vmware.default_options.guest_creds["password"]) {
+            vmrun_opts["guestPassword"] = config.vmware.default_options.guest_creds.password;
+        }
+    }
+}
+
+VMRun.setOptions(vmrun_opts);
+
+console.log(" === VMRun options initialised. === \n");
+
 
 const commands = {};
 
@@ -36,7 +96,7 @@ for (const filename of cmd_dir) {
     }
 }
 
-console.log(" === All commands loaded. === ");
+console.log(" === All commands loaded. === \n");
 
 function update_activity(): void {
     client.user.setActivity("virtual machines", { type: Discord.ActivityType.Playing });
@@ -126,6 +186,7 @@ client.on("messageCreate", async (message: Message): Promise<void> => {
                 commands: commands,
                 config: config,
                 powered_vms: powered_vms,
+                VMRun: VMRun,
             };
 
             const call: CommandCall = (m, d) => { // wrap in function to enforce type checking in IDE
