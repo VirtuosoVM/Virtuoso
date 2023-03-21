@@ -203,7 +203,7 @@ client.on("messageCreate", async (message: Message): Promise<void> => {
                 Discord: Discord,
                 commands: commands,
                 config: config,
-                powered_vms: powered_vms,
+                powered_vms: powered_vms, // TODO: actually query the VMs' power state. something could fail or the os could be shut down
                 booting_vms: booting_vms,
                 VMRun: VMRun,
                 helper_functions: helper_functions,
