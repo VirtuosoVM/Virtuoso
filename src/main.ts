@@ -92,6 +92,8 @@ const commands = {};
 
 console.log(" --- Initialising commands... --- ");
 
+const disabled_commands = config.commands?.disabled ?? [];
+
 const cmd_dir = fs.readdirSync("./dist/src/cmd/");
 
 // load commands in the cmd directory to the commands object
@@ -128,14 +130,13 @@ const helper_functions = {
     "edit_vmrun_opts": edit_vmrun_opts,
 };
 
+const powered_vms = [];
+const booting_vms = [];
+
 client.on("messageCreate", async (message: Message): Promise<void> => {
     if (message.author.bot) {
         return;
     }
-
-    const disabled_commands = [];
-    const powered_vms = [];
-    const booting_vms = [];
 
     if (message.guild === null) {
         message.channel.send("This bot does not support DMs. Please return to the channel where the bot is active.");

@@ -12,8 +12,8 @@ const call: CommandCall = (message, data) => {
     for (const [vm_id, vm] of Object.entries(config.vmware.vm_list) as Entries<typeof config.vmware.vm_list>) {
         const name = vm.name;
         const desc = vm.description;
-        const powered = powered_vms.includes(name);
-        const booting = booting_vms.includes(name);
+        const powered = powered_vms.includes(vm_id);
+        const booting = booting_vms.includes(vm_id);
 
         // choose the correct emoji for the power state
         let power_light = "";
