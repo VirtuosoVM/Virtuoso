@@ -1,3 +1,5 @@
+// Lists all available VMs.
+
 import { CommandCall, Entries } from "../types";
 
 const call: CommandCall = (message, data) => {

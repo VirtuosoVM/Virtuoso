@@ -1,3 +1,5 @@
+// Measures the latency of the bot.
+
 import { CommandCall } from "../types";
 
 const call: CommandCall = (message, data) => {
