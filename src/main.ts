@@ -1,7 +1,7 @@
 import "source-map-support/register";
 
 import * as Discord from "discord.js";
-const client = new Discord.Client({ partials: [Discord.Partials.Channel], intents: [Discord.GatewayIntentBits.Guilds, Discord.GatewayIntentBits.GuildMembers, Discord.GatewayIntentBits.GuildMessages, Discord.GatewayIntentBits.GuildMessageReactions, Discord.GatewayIntentBits.DirectMessages] });
+const client = new Discord.Client({ partials: [Discord.Partials.Channel], intents: [Discord.GatewayIntentBits.MessageContent, Discord.GatewayIntentBits.Guilds, Discord.GatewayIntentBits.GuildMembers, Discord.GatewayIntentBits.GuildMessages, Discord.GatewayIntentBits.GuildMessageReactions, Discord.GatewayIntentBits.DirectMessages] });
 
 import * as config from "../config.json";
 
@@ -19,7 +19,7 @@ const commands = {};
 
 console.log(" --- Initialising commands... --- ");
 
-const cmd_dir = fs.readdirSync("./dist/cmd/");
+const cmd_dir = fs.readdirSync("./dist/src/cmd/");
 
 for (const filename of cmd_dir) {
     if (filename.endsWith(".js")) {
@@ -45,7 +45,9 @@ client.on("ready", async (): Promise<void> => {
     console.log(`Logged in as ${client.user.tag}!`);
     update_activity();
     setInterval(update_activity, 15000);
-    process.send("ready");
+    if (process.send) {
+        process.send("ready");
+    }
 });
 
 client.on("messageCreate", async (message: Message): Promise<void> => {
@@ -61,20 +63,32 @@ client.on("messageCreate", async (message: Message): Promise<void> => {
     }
 
     if (!message.guild.members.me.permissions.has(
+        // permissions integer: 376896, invite: https://discord.com/api/oauth2/authorize?client_id=YOUR_BOT_CLIENT_ID&permissions=376896&scope=bot
         [
             Discord.PermissionsBitField.Flags.ReadMessageHistory,
             Discord.PermissionsBitField.Flags.EmbedLinks,
             Discord.PermissionsBitField.Flags.AttachFiles,
             Discord.PermissionsBitField.Flags.UseExternalEmojis,
+            Discord.PermissionsBitField.Flags.AddReactions
         ]
     )) {
-        message.channel.send("The bot is missing basic permissions.\nPlease make sure the bot has at least the following permissions: `READ MESSAGE HISTORY`, `EMBED LINKS`, `ATTACH FILES` and `USE EXTERNAL EMOJIS`.\nRe-invite the bot to get all the required permissions.");
+        message.channel.send("The bot is missing basic permissions.\nPlease make sure the bot has at least the following permissions: `READ MESSAGE HISTORY`, `EMBED LINKS`, `ATTACH FILES`, `USE EXTERNAL EMOJIS` and `ADD REACTIONS`.\nRe-invite the bot to get all the required permissions.");
         return;
     }
 
     if (message.content.toLowerCase().startsWith(config.discord.prefix) || message.content.toLowerCase().startsWith(client.user.toString())) {
+        if (message.author.id !== config.discord.owner_id && !config.discord.authorised_user_ids.includes(message.author.id)) {
+            const embed = new Discord.EmbedBuilder()
+                .setColor(0xFF0000)
+                .setTitle(":x: Unauthorised")
+                .setDescription("You are not authorised to use this bot.")
+                .setFooter({ text: "This bot is limited to authorised users only." });
+            message.reply({ embeds: [embed] });
+            return;
+        }
+
         const ignore_start = message.content.toLowerCase().startsWith(client.user.toString()) ? client.user.toString() : config.discord.prefix;
-        
+
         const limited = rate_limiter.take(message.author.id);
         if (limited) {
             const limit_limited = limit_limiter.take(message.author.id);
@@ -100,6 +114,8 @@ client.on("messageCreate", async (message: Message): Promise<void> => {
         const cased_args = message.content.trimStart().replace(ignore_start, "").trimStart().split(" ").slice(1); // extract arguments
 
         if (cmd in commands && !disabled_commands.includes(cmd)) {
+            console.log(` > ${cmd} with args ${cased_args} from ${message.author.tag} (${message.author.id}) in ${message.guild.name} (${message.guild.id})`)
+
             const data = {
                 args: args,
                 cased_args: cased_args,

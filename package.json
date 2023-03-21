@@ -5,7 +5,8 @@
   "main": "./src/main.ts",
   "scripts": {
     "preinstall": "npx npm-force-resolutions",
-    "start": "pm2 start ./dist/main.js -n vcordpc -i 1 --wait-ready --shutdown-with-message --max-restarts=1",
+    "start": "pm2 start ./dist/src/main.js -n vcordpc -i 1 --wait-ready --shutdown-with-message --max-restarts=1",
+    "start:no-pm2": "node ./dist/src/main.js",
     "build": "tsc --build",
     "clean": "rimraf ./dist/",
     "dev": "tsc --watch",
