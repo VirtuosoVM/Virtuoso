@@ -6,6 +6,8 @@ import * as embeds from "../embed_generator";
 
 import * as fs from "fs";
 
+// TODO: check vmware tools state of each vm on startup using checkToolsState
+
 const call: CommandCall = async (in_message, data) => {
     const { config, booting_vms, shutting_down_vms, VMRun, helper_functions } = data;
     const { edit_vmrun_opts, query_vm_id_power_state } = helper_functions;
