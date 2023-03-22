@@ -28,6 +28,13 @@ const call: CommandCall = async (message, data) => {
         return;
     }
 
+    const embed = new Discord.EmbedBuilder()
+        .setColor(0xFF00FF)
+        .setTitle("Querying power state...")
+        .setDescription("This shouldn't take long...");
+
+    const msg = await message.reply({ embeds: [embed] });
+
     let is_powered: boolean;
 
     // we're doing a check on the ID earlier so we don't have to consult the filesystem for the VMX path
@@ -35,22 +42,26 @@ const call: CommandCall = async (message, data) => {
     try {
         is_powered = await query_vm_id_power_state(vm_id);
     } catch (err) {
+        msg.delete();
         message.reply("An error occurred while querying the VM power state. Please consult the bot administrator.");
         console.error(`Error querying VM power state for VM ${vm_id}: ${err}`);
         return;
     }
 
     if (!is_powered) {
+        msg.delete();
         message.reply("VM is already powered off.");
         return;
     }
 
     if (!stop_type) {
+        msg.delete();
         message.reply("Please specify the type of stop. [soft | hard]");
         return;
     }
 
     if (stop_type !== "soft" && stop_type !== "hard") {
+        msg.delete();
         message.reply("Invalid stop type. Please specify the type of stop. [soft | hard]");
         return;
     }
@@ -59,6 +70,7 @@ const call: CommandCall = async (message, data) => {
 
     // validate the vmx path exists on the filesystem
     if (!fs.existsSync(vmx_path)) {
+        msg.delete();
         message.reply("VMX file does not exist. Please consult the bot administrator.");
         console.error(`VMX file does not exist: ${vmx_path} for VM ${vm_id}`);
         return;
@@ -76,13 +88,13 @@ const call: CommandCall = async (message, data) => {
 
     console.log(`Stopping VM ${vm_id}...`);
 
-    const embed = new Discord.EmbedBuilder()
+    embed
         .setColor(0xFFFF00)
         .setTitle(":yellow_circle: Stopping VM")
         .setDescription(`VM ${vm_id} is stopping...`)
         .setTimestamp();
 
-    const msg = await message.reply({ embeds: [embed] });
+    await msg.edit({ embeds: [embed] });
 
     // set the vmrun options if overridden in the config
     let VMRun_mod = VMRun;

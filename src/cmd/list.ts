@@ -24,7 +24,7 @@ const call: CommandCall = async (message, data) => {
         .setTitle("Querying power states...")
         .setDescription("This may take some time...");
 
-    const msg = await message.channel.send({ embeds: [embed] });
+    const msg = await message.reply({ embeds: [embed] });
 
     let powered_vms: string[];
 
