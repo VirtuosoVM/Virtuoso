@@ -107,6 +107,7 @@ const call: CommandCall = async (in_message, data) => {
 
     if (stop_type === "hard") {
         if (no_warn !== "!") {
+            // TODO: DRY confirmations into a class or helper function
             embed
                 .setColor(0xFFAA00)
                 .setTitle(":orange_circle: Confirm Hard Stop")
@@ -152,6 +153,10 @@ const call: CommandCall = async (in_message, data) => {
                 in_message.reply(`Aborted hard stop of VM ${vm_id}.`);
                 return;
             }
+
+            out_message.reactions.removeAll().catch((err) => {
+                console.error(`Error removing reactions: ${err}`);
+            });
         }
     }
 
@@ -163,7 +168,7 @@ const call: CommandCall = async (in_message, data) => {
         const stopped_embed = new Discord.EmbedBuilder()
             .setColor(0x00FF00)
             .setTitle(":green_circle: VM Stopped")
-            .setDescription(`VM ${vm_id} has been stopped`)
+            .setDescription(`VM ${vm_id} has been stopped.`)
             .setTimestamp();
 
         out_message.edit({ embeds: [stopped_embed] });

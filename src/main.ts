@@ -1,7 +1,16 @@
 import "source-map-support/register";
 
 import * as Discord from "discord.js";
-const client = new Discord.Client({ partials: [Discord.Partials.Channel], intents: [Discord.GatewayIntentBits.MessageContent, Discord.GatewayIntentBits.Guilds, Discord.GatewayIntentBits.GuildMembers, Discord.GatewayIntentBits.GuildMessages, Discord.GatewayIntentBits.GuildMessageReactions, Discord.GatewayIntentBits.DirectMessages] });
+const client = new Discord.Client({
+    partials: [Discord.Partials.Channel], intents: [
+        Discord.GatewayIntentBits.MessageContent,
+        Discord.GatewayIntentBits.Guilds, 
+        Discord.GatewayIntentBits.GuildMembers, 
+        Discord.GatewayIntentBits.GuildMessages, 
+        Discord.GatewayIntentBits.GuildMessageReactions, 
+        Discord.GatewayIntentBits.DirectMessages
+    ]
+});
 
 import * as config from "../config.json";
 
@@ -127,16 +136,21 @@ client.on("messageCreate", async (in_message: Message): Promise<void> => {
     }
 
     if (!in_message.guild.members.me.permissions.has(
-        // permissions integer: 376896, invite: https://discord.com/api/oauth2/authorize?client_id=YOUR_BOT_CLIENT_ID&permissions=376896&scope=bot
+        // permissions integer: 274945402944, invite: https://discord.com/api/oauth2/authorize?client_id=YOUR_BOT_CLIENT_ID&permissions=274945402944&scope=bot
         [
+            Discord.PermissionsBitField.Flags.SendMessages,
+            Discord.PermissionsBitField.Flags.SendMessagesInThreads,
+            Discord.PermissionsBitField.Flags.ManageMessages,
             Discord.PermissionsBitField.Flags.ReadMessageHistory,
             Discord.PermissionsBitField.Flags.EmbedLinks,
             Discord.PermissionsBitField.Flags.AttachFiles,
             Discord.PermissionsBitField.Flags.UseExternalEmojis,
-            Discord.PermissionsBitField.Flags.AddReactions
+            Discord.PermissionsBitField.Flags.AddReactions,
+            Discord.PermissionsBitField.Flags.ChangeNickname,
+
         ]
     )) {
-        in_message.channel.send("The bot is missing basic permissions.\nPlease make sure the bot has at least the following permissions: `READ MESSAGE HISTORY`, `EMBED LINKS`, `ATTACH FILES`, `USE EXTERNAL EMOJIS` and `ADD REACTIONS`.\nRe-invite the bot to get all the required permissions.");
+        in_message.channel.send("The bot is missing basic permissions.\nConsider resetting the bot's permissions to the default invite permissions.");
         return;
     }
 
