@@ -9,17 +9,22 @@ export enum Icons {
     INFO = ":white_circle:",
     ACTION_PENDING = ":yellow_circle:",
     QUERY_PENDING = ":purple_circle:",
-    LISTICLE = ":blue_circle:",
+    PAGED_LIST = ":blue_circle:",
     CONFIRMATION = ":orange_circle:",
     ARGUMENT_ISSUE = ":black_circle:",
 
     FATAL = ":x:",
 
+    SCREENSHOT_PENDING = ":camera:",
+    SCREENSHOT_SUCCESS = ":camera_with_flash:",
+
     YES = ":white_check_mark:",
     NO = ":x:",
 
-    SCREENSHOT_PENDING = ":camera:",
-    SCREENSHOT_SUCCESS = ":camera_with_flash:",
+    POWERED = ":green_square:",
+    BOOTING = ":yellow_square:",
+    SHUTTING_DOWN = ":orange_square:",
+    UNPOWERED = ":red_square:",
 }
 
 class BaseEmbed extends EmbedBuilder {
@@ -69,7 +74,8 @@ export class InfoEmbed extends BaseEmbed {
 
         this
             .setColor(0xFFFFFF)
-            .setTitleIcon(Icons.INFO);
+            .setTitleIcon(Icons.INFO)
+            .setAuthor({ name: "Info" });
     }
 }
 
@@ -79,7 +85,8 @@ export class SuccessEmbed extends BaseEmbed {
 
         this
             .setColor(0x00FF00)
-            .setTitleIcon(Icons.SUCCESS);
+            .setTitleIcon(Icons.SUCCESS)
+            .setAuthor({ name: "Success" });
     }
 }
 
@@ -89,7 +96,8 @@ export class ErrorEmbed extends BaseEmbed {
 
         this
             .setColor(0xFF0000)
-            .setTitleIcon(Icons.ERROR);
+            .setTitleIcon(Icons.ERROR)
+            .setAuthor({ name: "Error" });
     }
 }
 
@@ -99,7 +107,8 @@ export class ActionPendingEmbed extends BaseEmbed {
 
         this
             .setColor(0xFFFF00)
-            .setTitleIcon(Icons.ACTION_PENDING);
+            .setTitleIcon(Icons.ACTION_PENDING)
+            .setAuthor({ name: "Action Pending" });
     }
 }
 
@@ -109,17 +118,19 @@ export class QueryPendingEmbed extends BaseEmbed {
 
         this
             .setColor(0xFF00FF)
-            .setTitleIcon(Icons.QUERY_PENDING);
+            .setTitleIcon(Icons.QUERY_PENDING)
+            .setAuthor({ name: "Query Pending" });
     }
 }
 
-export class ListicleEmbed extends BaseEmbed {
+export class PagedListEmbed extends BaseEmbed {
     constructor() {
         super();
 
         this
             .setColor(0x0000FF)
-            .setTitleIcon(Icons.LISTICLE);
+            .setTitleIcon(Icons.PAGED_LIST)
+            .setAuthor({ name: "Paged List" });
     }
 }
 
@@ -131,6 +142,7 @@ export class FatalEmbed extends BaseEmbed {
             .setColor(0xFF0000)
             .setTitleIcon(Icons.FATAL)
             .setFooter({ text: "Please consult with the bot administrator." })
+            .setAuthor({ name: "Fatal" });
     }
 }
 
@@ -140,7 +152,8 @@ export class ConfirmationEmbed extends BaseEmbed {
 
         this
             .setColor(0xFFAA00)
-            .setTitleIcon(Icons.CONFIRMATION);
+            .setTitleIcon(Icons.CONFIRMATION)
+            .setAuthor({ name: "Confirmation" });
     }
 }
 
@@ -150,7 +163,8 @@ export class ArgumentIssueEmbed extends BaseEmbed {
 
         this
             .setColor(0xCCCCCC)
-            .setTitleIcon(Icons.ARGUMENT_ISSUE);
+            .setTitleIcon(Icons.ARGUMENT_ISSUE)
+            .setAuthor({ name: "Argument Issue" });
     }
 }
 

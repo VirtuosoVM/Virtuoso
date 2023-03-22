@@ -38,10 +38,12 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
-    embed = new embeds.ListicleEmbed()
-        .setTitle("Available VMs");
+    embed = new embeds.PagedListEmbed()
+        .setTitle("Available VMs")
+        // use proper pluralisation
+        .setDescription(`There ${powered_vms.length === 1 ? "is" : "are"} ${powered_vms.length} powered on VM${powered_vms.length === 1 ? "" : "s"}.`);
 
-    // TODO: move this pagniation to listicle embed class
+    // TODO: move this pagniation to paged list embed class
 
     const entries = Object.entries(config.vmware.vm_list) as Entries<typeof config.vmware.vm_list>;
     const page_count = Math.ceil(entries.length / FIELD_LIMIT);
@@ -72,14 +74,14 @@ const call: CommandCall = async (in_message, data) => {
         // choose the correct emoji for the power state
         let power_light = "";
         if (powered) {
-            power_light = "🟢";
+            power_light = embeds.Icons.POWERED;
         } else if (booting) {
-            power_light = "🟡";
+            power_light = embeds.Icons.BOOTING;
         } else {
-            power_light = "🔴";
+            power_light = embeds.Icons.UNPOWERED;
         }
 
-        let title = `${power_light} **${name}** [${vm_id}]`;
+        let title = `${power_light} **${name}** *[${vm_id}]*`;
 
         // auto truncate the title if it's too long
         title = title.length <= MAX_TITLE_LENGTH ? title : title.slice(0, MAX_TITLE_LENGTH - 3) + "...";
