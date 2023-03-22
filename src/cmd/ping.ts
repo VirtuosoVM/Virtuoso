@@ -2,15 +2,15 @@
 
 import { CommandCall } from "../types";
 
-const call: CommandCall = (message, data) => {
+const call: CommandCall = (in_message, data) => {
     const { client } = data;
 
-    message.channel.send("Pinging...").then((msg) => {
-        const ping = Math.round((msg.createdTimestamp - client.ws.ping) - message.createdTimestamp);
-        msg.edit(`Pong! 🏓 Estimated Latency is **${ping}ms.** API Latency is **${Math.round(client.ws.ping)}ms.**`);
+    in_message.channel.send("Pinging...").then((out_message) => {
+        const ping = Math.round((out_message.createdTimestamp - client.ws.ping) - in_message.createdTimestamp);
+        out_message.edit(`Pong! 🏓 Estimated Latency is **${ping}ms.** API Latency is **${Math.round(client.ws.ping)}ms.**`);
     }).catch((e) => {
         console.error(e);
-        message.channel.send("An error occurred while pinging.");
+        in_message.channel.send("An error occurred while pinging.");
     });
 };
 

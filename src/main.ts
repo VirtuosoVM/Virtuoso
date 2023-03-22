@@ -116,17 +116,17 @@ client.on("ready", async (): Promise<void> => {
 // booting is the lock on powering the vm once a request is made, not the actual os' state
 const booting_vms = [];
 
-client.on("messageCreate", async (message: Message): Promise<void> => {
-    if (message.author.bot) {
+client.on("messageCreate", async (in_message: Message): Promise<void> => {
+    if (in_message.author.bot) {
         return;
     }
 
-    if (message.guild === null) {
-        message.channel.send("This bot does not support DMs. Please return to the channel where the bot is active.");
+    if (in_message.guild === null) {
+        in_message.channel.send("This bot does not support DMs. Please return to the channel where the bot is active.");
         return;
     }
 
-    if (!message.guild.members.me.permissions.has(
+    if (!in_message.guild.members.me.permissions.has(
         // permissions integer: 376896, invite: https://discord.com/api/oauth2/authorize?client_id=YOUR_BOT_CLIENT_ID&permissions=376896&scope=bot
         [
             Discord.PermissionsBitField.Flags.ReadMessageHistory,
@@ -136,49 +136,49 @@ client.on("messageCreate", async (message: Message): Promise<void> => {
             Discord.PermissionsBitField.Flags.AddReactions
         ]
     )) {
-        message.channel.send("The bot is missing basic permissions.\nPlease make sure the bot has at least the following permissions: `READ MESSAGE HISTORY`, `EMBED LINKS`, `ATTACH FILES`, `USE EXTERNAL EMOJIS` and `ADD REACTIONS`.\nRe-invite the bot to get all the required permissions.");
+        in_message.channel.send("The bot is missing basic permissions.\nPlease make sure the bot has at least the following permissions: `READ MESSAGE HISTORY`, `EMBED LINKS`, `ATTACH FILES`, `USE EXTERNAL EMOJIS` and `ADD REACTIONS`.\nRe-invite the bot to get all the required permissions.");
         return;
     }
 
-    if (message.content.toLowerCase().startsWith(config.discord.prefix) || message.content.toLowerCase().startsWith(client.user.toString())) {
-        if (message.author.id !== config.discord.owner_id && !config.discord.authorised_user_ids.includes(message.author.id)) {
+    if (in_message.content.toLowerCase().startsWith(config.discord.prefix) || in_message.content.toLowerCase().startsWith(client.user.toString())) {
+        if (in_message.author.id !== config.discord.owner_id && !config.discord.authorised_user_ids.includes(in_message.author.id)) {
             const embed = new Discord.EmbedBuilder()
                 .setColor(0xFF0000)
                 .setTitle(":x: Unauthorised")
                 .setDescription("You are not authorised to use this bot.")
                 .setFooter({ text: "This bot is limited to authorised users only." });
-            message.reply({ embeds: [embed] });
+            in_message.reply({ embeds: [embed] });
             return;
         }
 
-        const ignore_start = message.content.toLowerCase().startsWith(client.user.toString()) ? client.user.toString() : config.discord.prefix;
+        const ignore_start = in_message.content.toLowerCase().startsWith(client.user.toString()) ? client.user.toString() : config.discord.prefix;
 
-        const limited = rate_limiter.take(message.author.id);
+        const limited = rate_limiter.take(in_message.author.id);
         if (limited) {
-            const limit_limited = limit_limiter.take(message.author.id);
+            const limit_limited = limit_limiter.take(in_message.author.id);
 
             if (limit_limited) {
-                console.log(`Ratelimit notification limit hit for ${message.author.id}`);
+                console.log(`Ratelimit notification limit hit for ${in_message.author.id}`);
                 return;
             }
 
-            console.log(`Ratelimit hit for ${message.author.id}`);
+            console.log(`Ratelimit hit for ${in_message.author.id}`);
 
             const embed = new Discord.EmbedBuilder()
                 .setColor(0xFF0000)
                 .setTitle(":x: Ratelimit hit")
                 .setDescription("Slow down, you're going too fast!")
                 .setFooter({ text: "This bot is limited to 1 command per 2 seconds." });
-            message.reply({ embeds: [embed] });
+            in_message.reply({ embeds: [embed] });
             return;
         }
 
-        const cmd = message.content.toLowerCase().trimStart().replace(ignore_start, "").trimStart().split(" ")[0]; // extract command
-        const args = message.content.toLowerCase().trimStart().trimStart().split(" ").slice(1); // extract arguments
-        const cased_args = message.content.trimStart().replace(ignore_start, "").trimStart().split(" ").slice(1); // extract arguments
+        const cmd = in_message.content.toLowerCase().trimStart().replace(ignore_start, "").trimStart().split(" ")[0]; // extract command
+        const args = in_message.content.toLowerCase().trimStart().trimStart().split(" ").slice(1); // extract arguments
+        const cased_args = in_message.content.trimStart().replace(ignore_start, "").trimStart().split(" ").slice(1); // extract arguments
 
         if (cmd in commands && !disabled_commands.includes(cmd)) {
-            console.log(` > ${cmd} with args ${cased_args} from ${message.author.tag} (${message.author.id}) in ${message.guild.name} (${message.guild.id})`)
+            console.log(` > ${cmd} with args ${cased_args} from ${in_message.author.tag} (${in_message.author.id}) in ${in_message.guild.name} (${in_message.guild.id})`)
 
             const data = {
                 args: args,
@@ -197,7 +197,7 @@ client.on("messageCreate", async (message: Message): Promise<void> => {
             };
 
             try {
-                call(message, data); // call command with message and optional data
+                call(in_message, data); // call command with message and optional data
             } catch (e) {
                 console.error(e);
                 const embed = new Discord.EmbedBuilder()
@@ -205,7 +205,7 @@ client.on("messageCreate", async (message: Message): Promise<void> => {
                     .setTitle(":x: Error")
                     .setDescription("An error occurred while executing the command.")
                     .setFooter({ text: "Please contact the bot administrator if this error persists." });
-                message.reply({ embeds: [embed] });
+                in_message.reply({ embeds: [embed] });
             }
         }
     }

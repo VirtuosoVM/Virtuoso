@@ -3,26 +3,26 @@
 import { CommandCall } from "../types";
 import * as fs from "fs";
 
-const call: CommandCall = async (message, data) => {
+const call: CommandCall = async (in_message, data) => {
     const { Discord, config, booting_vms, VMRun, helper_functions } = data;
     const { edit_vmrun_opts, query_vm_id_power_state } = helper_functions;
 
     const vm_id = data.args[0];
 
     if (!vm_id) {
-        message.reply("Please specify a VM ID.");
+        in_message.reply("Please specify a VM ID.");
         return;
     }
 
     const vm = config.vmware.vm_list[vm_id];
 
     if (!vm) {
-        message.reply("Invalid VM ID.");
+        in_message.reply("Invalid VM ID.");
         return;
     }
 
     if (booting_vms.includes(vm_id)) {
-        message.reply("VM is already booting.");
+        in_message.reply("VM is already booting.");
         return;
     }
 
@@ -31,7 +31,7 @@ const call: CommandCall = async (message, data) => {
         .setTitle("Querying power state...")
         .setDescription("This shouldn't take long...");
 
-    const msg = await message.reply({ embeds: [embed] });
+    const out_message = await in_message.reply({ embeds: [embed] });
 
     let is_powered: boolean;
 
@@ -40,15 +40,15 @@ const call: CommandCall = async (message, data) => {
     try {
         is_powered = await query_vm_id_power_state(vm_id);
     } catch (err) {
-        msg.delete();
-        message.reply("An error occurred while querying the VM power state. Please consult the bot administrator.");
+        out_message.delete();
+        in_message.reply("An error occurred while querying the VM power state. Please consult the bot administrator.");
         console.error(`Error querying VM power state for VM ${vm_id}: ${err}`);
         return;
     }
 
     if (is_powered) {
-        msg.delete();
-        message.reply("VM is already powered on.");
+        out_message.delete();
+        in_message.reply("VM is already powered on.");
         return;
     }
 
@@ -56,8 +56,8 @@ const call: CommandCall = async (message, data) => {
 
     // validate the vmx path exists on the filesystem
     if (!fs.existsSync(vmx_path)) {
-        msg.delete();
-        message.reply("VMX file does not exist. Please consult the bot administrator.");
+        out_message.delete();
+        in_message.reply("VMX file does not exist. Please consult the bot administrator.");
         console.error(`VMX file does not exist: ${vmx_path} for VM ${vm_id}`);
         return;
     }
@@ -81,7 +81,7 @@ const call: CommandCall = async (message, data) => {
         .setDescription(`VM ${vm_id} is booting...`)
         .setTimestamp();
     
-    msg.edit({ embeds: [embed] });
+    out_message.edit({ embeds: [embed] });
 
     // set the vmrun options if overridden in the config
     let VMRun_mod = VMRun;
@@ -110,7 +110,7 @@ const call: CommandCall = async (message, data) => {
             .setDescription(`VM ${vm_id} has been booted.`)
             .setTimestamp();
 
-        msg.edit({ embeds: [embed] });
+        out_message.edit({ embeds: [embed] });
 
         if (disconnect_sound) {
             // disconnect the sound device from the VM
@@ -131,7 +131,7 @@ const call: CommandCall = async (message, data) => {
             .setDescription(`An error occurred while booting VM ${vm_id}. Please consult the bot administrator.`)
             .setTimestamp();
 
-        msg.edit({ embeds: [embed] });
+        out_message.edit({ embeds: [embed] });
     });
 };
 

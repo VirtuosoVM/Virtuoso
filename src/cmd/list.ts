@@ -7,7 +7,7 @@ const FIELD_LIMIT = 10;
 const MAX_TITLE_LENGTH = 256;
 const MAX_VALUE_LENGTH = 1024;
 
-const call: CommandCall = async (message, data) => {
+const call: CommandCall = async (in_message, data) => {
     const { Discord, config, booting_vms, helper_functions } = data;
     const { list_running_vm_ids } = helper_functions;
 
@@ -15,7 +15,7 @@ const call: CommandCall = async (message, data) => {
     const page = data.args[0] ? parseInt(data.args[0]) : 1;
 
     if (isNaN(page) || page < 1) {
-        message.reply("Invalid page number.");
+        in_message.reply("Invalid page number.");
         return;
     }
 
@@ -24,15 +24,15 @@ const call: CommandCall = async (message, data) => {
         .setTitle("Querying power states...")
         .setDescription("This may take some time...");
 
-    const msg = await message.reply({ embeds: [embed] });
+    const out_message = await in_message.reply({ embeds: [embed] });
 
     let powered_vms: string[];
 
     try {
         powered_vms = await list_running_vm_ids();
     } catch (err) {
-        msg.delete();
-        message.reply("An error occurred while querying the VM power state. Please consult the bot administrator.");
+        out_message.delete();
+        in_message.reply("An error occurred while querying the VM power state. Please consult the bot administrator.");
         console.error(`Error querying VM power state: ${err}`);
         return;
     }
@@ -49,8 +49,8 @@ const call: CommandCall = async (message, data) => {
     const txt_pages_page = page_count === 1 ? "page" : "pages";
 
     if (page > page_count) {
-        msg.delete();
-        message.reply(`Invalid page number. There ${txt_are_is} only ${page_count} ${txt_pages_page}.`);
+        out_message.delete();
+        in_message.reply(`Invalid page number. There ${txt_are_is} only ${page_count} ${txt_pages_page}.`);
         return;
     }
 
@@ -85,7 +85,7 @@ const call: CommandCall = async (message, data) => {
         embed.addFields([{ name: title, value: desc }]);
     }
 
-    msg.edit({ embeds: [embed] });
+    out_message.edit({ embeds: [embed] });
 };
 
 module.exports = call;

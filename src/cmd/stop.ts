@@ -3,7 +3,7 @@
 import { CommandCall } from "../types";
 import * as fs from "fs";
 
-const call: CommandCall = async (message, data) => {
+const call: CommandCall = async (in_message, data) => {
     const { Discord, config, booting_vms, VMRun, helper_functions } = data;
     const { edit_vmrun_opts, query_vm_id_power_state } = helper_functions;
 
@@ -12,19 +12,19 @@ const call: CommandCall = async (message, data) => {
     const no_warn = data.args[2];
 
     if (!vm_id) {
-        message.reply("Please specify a VM ID.");
+        in_message.reply("Please specify a VM ID.");
         return;
     }
 
     const vm = config.vmware.vm_list[vm_id];
 
     if (!vm) {
-        message.reply("Invalid VM ID.");
+        in_message.reply("Invalid VM ID.");
         return;
     }
 
     if (booting_vms.includes(vm_id)) {
-        message.reply("Cannot stop VM whilst booting.");
+        in_message.reply("Cannot stop VM whilst booting.");
         return;
     }
 
@@ -33,7 +33,7 @@ const call: CommandCall = async (message, data) => {
         .setTitle("Querying power state...")
         .setDescription("This shouldn't take long...");
 
-    const msg = await message.reply({ embeds: [embed] });
+    const out_message = await in_message.reply({ embeds: [embed] });
 
     let is_powered: boolean;
 
@@ -42,27 +42,27 @@ const call: CommandCall = async (message, data) => {
     try {
         is_powered = await query_vm_id_power_state(vm_id);
     } catch (err) {
-        msg.delete();
-        message.reply("An error occurred while querying the VM power state. Please consult the bot administrator.");
+        out_message.delete();
+        in_message.reply("An error occurred while querying the VM power state. Please consult the bot administrator.");
         console.error(`Error querying VM power state for VM ${vm_id}: ${err}`);
         return;
     }
 
     if (!is_powered) {
-        msg.delete();
-        message.reply("VM is already powered off.");
+        out_message.delete();
+        in_message.reply("VM is already powered off.");
         return;
     }
 
     if (!stop_type) {
-        msg.delete();
-        message.reply("Please specify the type of stop. [soft | hard]");
+        out_message.delete();
+        in_message.reply("Please specify the type of stop. [soft | hard]");
         return;
     }
 
     if (stop_type !== "soft" && stop_type !== "hard") {
-        msg.delete();
-        message.reply("Invalid stop type. Please specify the type of stop. [soft | hard]");
+        out_message.delete();
+        in_message.reply("Invalid stop type. Please specify the type of stop. [soft | hard]");
         return;
     }
 
@@ -70,8 +70,8 @@ const call: CommandCall = async (message, data) => {
 
     // validate the vmx path exists on the filesystem
     if (!fs.existsSync(vmx_path)) {
-        msg.delete();
-        message.reply("VMX file does not exist. Please consult the bot administrator.");
+        out_message.delete();
+        in_message.reply("VMX file does not exist. Please consult the bot administrator.");
         console.error(`VMX file does not exist: ${vmx_path} for VM ${vm_id}`);
         return;
     }
@@ -94,7 +94,7 @@ const call: CommandCall = async (message, data) => {
         .setDescription(`VM ${vm_id} is stopping...`)
         .setTimestamp();
 
-    await msg.edit({ embeds: [embed] });
+    await out_message.edit({ embeds: [embed] });
 
     // set the vmrun options if overridden in the config
     let VMRun_mod = VMRun;
@@ -121,18 +121,18 @@ const call: CommandCall = async (message, data) => {
                 .setFooter({ text: "This message will self-destruct in 15 seconds." })
                 .setTimestamp();
 
-            await msg.edit({ embeds: [embed] });
+            await out_message.edit({ embeds: [embed] });
 
-            await msg.react("✅");
-            await msg.react("❌");
+            await out_message.react("✅");
+            await out_message.react("❌");
 
             const filter = (reaction, user) => {
-                return (reaction.emoji.name === "✅" || reaction.emoji.name === "❌") && user.id === message.author.id;
+                return (reaction.emoji.name === "✅" || reaction.emoji.name === "❌") && user.id === in_message.author.id;
             };
 
             // reaction collection block. continues if user reacts with ✅ within 15s, otherwise edits the message and returns
             try {
-                const reactions = await msg.awaitReactions({ filter, time: 15000, max: 1, errors: ["time"] });
+                const reactions = await out_message.awaitReactions({ filter, time: 15000, max: 1, errors: ["time"] });
 
                 if (reactions.size === 0) {
                     // fallback to catch block
@@ -148,8 +148,8 @@ const call: CommandCall = async (message, data) => {
                 // otherwise, continue as normal
             } catch (err) {
                 console.warn(`Error or abort: ${err}`);
-                msg.delete();
-                message.reply(`Aborted hard stop of VM ${vm_id}.`);
+                out_message.delete();
+                in_message.reply(`Aborted hard stop of VM ${vm_id}.`);
                 return;
             }
         }
@@ -166,7 +166,7 @@ const call: CommandCall = async (message, data) => {
             .setDescription(`VM ${vm_id} has been stopped`)
             .setTimestamp();
 
-        msg.edit({ embeds: [stopped_embed] });
+        out_message.edit({ embeds: [stopped_embed] });
     }).catch((err) => {
         console.error(`Error stopping VM ${vm_id}: ${err}`);
 
@@ -176,7 +176,7 @@ const call: CommandCall = async (message, data) => {
             .setDescription(`An error occurred while stopping VM ${vm_id}. Please consult the bot administrator.`)
             .setTimestamp();
 
-        msg.edit({ embeds: [error_embed] });
+        out_message.edit({ embeds: [error_embed] });
     });
 };
 
