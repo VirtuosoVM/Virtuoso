@@ -61,7 +61,7 @@ if (config.vmware["vmrun_path"]) {
     vmrun_options["vmrunPath"] = vr_path;
 }
 
-// helper function that will be reused for overriding default options
+// (immediate) helper function that will be reused for overriding default options
 const edit_vmrun_opts = (input_opts: { [key: string]: any }, vmrun_opts: { [key: string]: any }) => {
     // optional fields for vm_password and guest_creds
     if (input_opts["vm_password"]) {
@@ -126,8 +126,27 @@ client.on("ready", async (): Promise<void> => {
     }
 });
 
+// more helper functions
+
+const wait_for_file_to_exist = (file_path: string, timeout: number, interval_ms: number): Promise<void> => {
+    return new Promise((resolve, reject) => {
+        const start_time = Date.now();
+
+        const interval = setInterval(() => {
+            if (fs.existsSync(file_path)) {
+                clearInterval(interval);
+                resolve();
+            } else if (Date.now() - start_time > timeout) {
+                clearInterval(interval);
+                reject();
+            }
+        }, interval_ms);
+    });
+};
+
 const helper_functions = {
     "edit_vmrun_opts": edit_vmrun_opts,
+    "wait_for_file_to_exist": wait_for_file_to_exist,
 };
 
 const powered_vms = [];

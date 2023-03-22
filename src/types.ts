@@ -20,7 +20,7 @@ export interface CommandCall {
             powered_vms: string[],
             booting_vms: string[],
             VMRun: typeof VMRun,
-            helper_functions: { [key: string]: Function },
+            helper_functions: { [key: string]: Function }, // TODO: can we automatically type this as a specific function type?
         }
     ): void
 }

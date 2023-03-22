@@ -9,25 +9,9 @@ import * as path from "path";
 
 import { v4 as uuidv4 } from "uuid";
 
-const wait_for_file_to_exist = (file_path: string, timeout: number, interval_ms: number): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        const start_time = Date.now();
-
-        const interval = setInterval(() => {
-            if (fs.existsSync(file_path)) {
-                clearInterval(interval);
-                resolve();
-            } else if (Date.now() - start_time > timeout) {
-                clearInterval(interval);
-                reject();
-            }
-        }, interval_ms);
-    });
-};
-
 const call: CommandCall = async (message, data) => {
     const { Discord, config, powered_vms, VMRun, helper_functions } = data;
-    const { edit_vmrun_opts } = helper_functions;
+    const { edit_vmrun_opts, wait_for_file_to_exist } = helper_functions;
 
     const vm_id = data.args[0];
 
