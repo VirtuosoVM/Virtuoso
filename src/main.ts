@@ -196,7 +196,17 @@ client.on("messageCreate", async (message: Message): Promise<void> => {
                 return commands[cmd](m, d);
             };
 
-            call(message, data); // call command with message and optional data
+            try {
+                call(message, data); // call command with message and optional data
+            } catch (e) {
+                console.error(e);
+                const embed = new Discord.EmbedBuilder()
+                    .setColor(0xFF0000)
+                    .setTitle(":x: Error")
+                    .setDescription("An error occurred while executing the command.")
+                    .setFooter({ text: "Please contact the bot administrator if this error persists." });
+                message.reply({ embeds: [embed] });
+            }
         }
     }
 });
