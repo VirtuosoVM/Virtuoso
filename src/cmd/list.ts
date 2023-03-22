@@ -2,14 +2,30 @@
 
 import { CommandCall, Entries } from "../types";
 
+// the API maximum is 25 fields per embed, but we don't want to make it too long
+const FIELD_LIMIT = 10;
+const MAX_TITLE_LENGTH = 256;
+const MAX_VALUE_LENGTH = 1024;
+
 const call: CommandCall = async (message, data) => {
     const { Discord, config, booting_vms, helper_functions } = data;
     const { list_running_vm_ids } = helper_functions;
 
+    // first arg or 1
+    const page = data.args[0] ? parseInt(data.args[0]) : 1;
+
+    if (isNaN(page) || page < 1) {
+        message.reply("Invalid page number.");
+        return;
+    }
+
     const embed = new Discord.EmbedBuilder()
         .setColor(0x0000FF)
-        .setTitle("Available VMs");
-    
+        .setTitle("Querying power states...")
+        .setDescription("This may take some time...");
+
+    const msg = await message.channel.send({ embeds: [embed] });
+
     let powered_vms: string[];
 
     try {
@@ -20,11 +36,27 @@ const call: CommandCall = async (message, data) => {
         return;
     }
 
-    console.log(powered_vms);
+    embed.setTitle("Available VMs");
+    embed.setDescription(null);
 
-    for (const [vm_id, vm] of Object.entries(config.vmware.vm_list) as Entries<typeof config.vmware.vm_list>) {
+    const entries = Object.entries(config.vmware.vm_list) as Entries<typeof config.vmware.vm_list>;
+    const page_count = Math.ceil(entries.length / FIELD_LIMIT);
+
+    if (page > page_count) {
+        message.reply(`Invalid page number. There are only ${page_count} pages.`);
+        return;
+    }
+
+    embed.setFooter({ text: `Page: ${page}/${page_count}` });
+
+    // slice the entries array to get the entries for the current page
+    const entries_page = entries.slice((page - 1) * FIELD_LIMIT, page * FIELD_LIMIT);
+
+    for (const [vm_id, vm] of entries_page) {
+        // auto truncate the description if it's too long
         const name = vm.name;
-        const desc = vm.description;
+        const desc = vm.description.length <= MAX_VALUE_LENGTH ? vm.description : vm.description.slice(0, MAX_VALUE_LENGTH - 3) + "...";
+
         const powered = powered_vms.includes(vm_id);
         const booting = booting_vms.includes(vm_id);
 
@@ -38,11 +70,15 @@ const call: CommandCall = async (message, data) => {
             power_light = "🔴";
         }
 
-        const title = `${power_light} **${name}** [${vm_id}]`;
+        let title = `${power_light} **${name}** [${vm_id}]`;
+
+        // auto truncate the title if it's too long
+        title = title.length <= MAX_TITLE_LENGTH ? title : title.slice(0, MAX_TITLE_LENGTH - 3) + "...";
+
         embed.addFields([{ name: title, value: desc }]);
     }
 
-    message.channel.send({ embeds: [embed] });
+    msg.edit({ embeds: [embed] });
 };
 
 module.exports = call;
