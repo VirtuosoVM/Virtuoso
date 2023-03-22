@@ -20,7 +20,7 @@ const call: CommandCall = async (message, data) => {
     }
 
     const embed = new Discord.EmbedBuilder()
-        .setColor(0x0000FF)
+        .setColor(0xFF00FF)
         .setTitle("Querying power states...")
         .setDescription("This may take some time...");
 
@@ -31,6 +31,7 @@ const call: CommandCall = async (message, data) => {
     try {
         powered_vms = await list_running_vm_ids();
     } catch (err) {
+        msg.delete();
         message.reply("An error occurred while querying the VM power state. Please consult the bot administrator.");
         console.error(`Error querying VM power state: ${err}`);
         return;
@@ -47,6 +48,7 @@ const call: CommandCall = async (message, data) => {
     const txt_pages_page = page_count === 1 ? "page" : "pages";
 
     if (page > page_count) {
+        msg.delete();
         message.reply(`Invalid page number. There ${txt_are_is} only ${page_count} ${txt_pages_page}.`);
         return;
     }
