@@ -141,7 +141,7 @@ client.on("messageCreate", async (in_message: Message): Promise<void> => {
     }
 
     if (in_message.content.toLowerCase().startsWith(config.discord.prefix) || in_message.content.toLowerCase().startsWith(client.user.toString())) {
-        if (in_message.author.id !== config.discord.owner_id && !config.discord.authorised_user_ids.includes(in_message.author.id)) {
+        if (in_message.author.id !== config.discord.owner_id && !config.discord.authorised_admin_user_ids.includes(in_message.author.id) && !config.discord.authorised_guest_user_ids.includes(in_message.author.id)) {
             const embed = new Discord.EmbedBuilder()
                 .setColor(0xFF0000)
                 .setTitle(":x: Unauthorised")

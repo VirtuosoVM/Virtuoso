@@ -3,8 +3,11 @@
         "token": "your bot's token",
         "prefix": "v!",
         "owner_id": "your discord ID",
-        "authorised_user_ids": [
-            "anyone else's discord ID who can use the bot, the owner is automatically authorised"
+        "authorised_admin_user_ids": [
+            "discord IDs that can perform actions with the admin credentials, the owner ID is automatically added to this list"
+        ],
+        "authorised_guest_user_ids": [
+            "anyone else's discord ID who can use the bot"
         ]
     },
     "vmware": {
