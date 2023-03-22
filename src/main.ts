@@ -221,6 +221,7 @@ client.on("messageCreate", async (in_message: Message): Promise<void> => {
                     .setFooter({ text: "Please contact the bot administrator if this error persists." });
                 in_message.reply({ embeds: [embed] });
             } // TODO: DRY different types of embeds and errors for consistency into class or function
+            // TODO: IDEA: embed diff tool using custom dictionary. only changes embed properties that are different from existing embed to save on instances
         }
     }
 });
