@@ -13,9 +13,13 @@ const limit_limiter = new RateLimiter(1, 1000); // 1 notification of being limit
 
 import * as VMRun from "vmrun";
 
+import * as pmx from "tx2";
+
 import * as fs from "fs";
 
-import * as pmx from "tx2";
+import * as helper_funcs from "./helper_funcs";
+const { update_vmrun_state, edit_vmrun_opts } = helper_funcs;
+
 
 console.log(" --- Validating basic config... --- ");
 
@@ -61,29 +65,12 @@ if (config.vmware["vmrun_path"]) {
     vmrun_options["vmrunPath"] = vr_path;
 }
 
-// (immediate) helper function that will be reused for overriding default options
-const edit_vmrun_opts = (input_opts: { [key: string]: any }, vmrun_opts: { [key: string]: any }) => {
-    // optional fields for vm_password and guest_creds
-    if (input_opts["vm_password"]) {
-        vmrun_opts["vmPassword"] = config.vmware.default_options.vm_password;
-    }
-
-    if (input_opts["guest_creds"]) {
-        if (input_opts.guest_creds["username"]) {
-            vmrun_opts["guestUsername"] = input_opts.guest_creds.username;
-        }
-
-        if (input_opts.guest_creds["password"]) {
-            vmrun_opts["guestPassword"] = input_opts.guest_creds.password;
-        }
-    }
-};
-
 if (config.vmware["default_options"]) {
     edit_vmrun_opts(config.vmware.default_options, vmrun_options);
 }
 
 VMRun.setOptions(vmrun_options);
+update_vmrun_state(VMRun);
 
 console.log(" === VMRun options initialised. === \n");
 
@@ -128,103 +115,6 @@ client.on("ready", async (): Promise<void> => {
 
 // booting is the lock on powering the vm once a request is made, not the actual os' state
 const booting_vms = [];
-
-// more helper functions
-
-const wait_for_file_to_exist = (file_path: string, timeout: number, interval_ms: number): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        const start_time = Date.now();
-
-        const interval = setInterval(() => {
-            if (fs.existsSync(file_path)) {
-                clearInterval(interval);
-                resolve();
-            } else if (Date.now() - start_time > timeout) {
-                clearInterval(interval);
-                reject();
-            }
-        }, interval_ms);
-    });
-};
-
-const list_running_vm_ids = async (): Promise<string[]> => {
-    const vm = config.vmware.vm_list;
-    const id_list = [];
-    const running_vms = await VMRun.list();
-
-    // TODO: should this be the other way? i.e. iterate over running_vms and check if they are in the config
-    for (const vm_id in vm) {
-        const vmx_path = vm[vm_id].vmx;
-
-        if (!vmx_path) {
-            throw new Error(`VMX path not specified for VM ${vm_id}`);
-        }
-
-        // validate the vmx path exists on the filesystem
-        if (!fs.existsSync(vmx_path)) {
-            throw new Error(`VMX file does not exist: ${vmx_path} for VM ${vm_id}`);
-        }
-
-        // for every vm that is powered on, match the vmx path to the vm id
-        for (const running_vm of running_vms) {
-            if (running_vm === vmx_path) {
-                id_list.push(vm_id);
-            }
-        }
-    }
-
-    return id_list;
-};
-
-const query_vm_id_power_state = async (vm_id: string): Promise<boolean> => {
-    // TODO: DRY similar code in other commands
-    const vm = config.vmware.vm_list[vm_id];
-
-    if (!vm) {
-        throw new Error(`Invalid VM ID: ${vm_id}`);
-    }
-
-    const vmx_path = vm.vmx;
-
-    // validate the vmx path exists on the filesystem
-    if (!fs.existsSync(vmx_path)) {
-        throw new Error(`VMX file does not exist: ${vmx_path} for VM ${vm_id}`);
-    }
-
-    // set the vmrun options if overridden in the config
-    let VMRun_mod = VMRun;
-
-    if (vm["options_override"]) {
-        const overriden_vmrun_opts = {};
-        edit_vmrun_opts(vm.options_override, overriden_vmrun_opts);
-        VMRun_mod = VMRun_mod.withModifiedOptions(overriden_vmrun_opts);
-    }
-
-    // repeated code so we don't iterate over the entire list of vms
-    const running_vms = await VMRun_mod.list();
-
-    // for every vm that is powered on, match the vmx path to the vm id
-    for (const running_vm of running_vms) {
-        if (running_vm === vmx_path) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-const query_vm_path_power_state = async (vmx_path: string): Promise<boolean> => {
-    const running_vms = await VMRun.list();
-    return running_vms.includes(vmx_path);
-};
-
-const helper_functions = {
-    "edit_vmrun_opts": edit_vmrun_opts,
-    "wait_for_file_to_exist": wait_for_file_to_exist,
-    "list_running_vm_ids": list_running_vm_ids,
-    "query_vm_id_power_state": query_vm_id_power_state,
-    "query_vm_path_power_state": query_vm_path_power_state
-};
 
 client.on("messageCreate", async (message: Message): Promise<void> => {
     if (message.author.bot) {
@@ -299,7 +189,7 @@ client.on("messageCreate", async (message: Message): Promise<void> => {
                 config: config,
                 booting_vms: booting_vms,
                 VMRun: VMRun, // passed to maintain state
-                helper_functions: helper_functions,
+                helper_functions: helper_funcs, // passed to maintain state
             };
 
             const call: CommandCall = (m, d) => { // wrap in function to enforce type checking in IDE
