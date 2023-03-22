@@ -19,6 +19,7 @@ export interface CommandCallData {
     commands: { [key: string]: any },
     config: BotConfig,
     booting_vms: string[],
+    shutting_down_vms: string[],
     VMRun: typeof VMRun,
     helper_functions: typeof helper_funcs,
 }

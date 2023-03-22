@@ -7,7 +7,7 @@ import * as embeds from "../embed_generator";
 import * as fs from "fs";
 
 const call: CommandCall = async (in_message, data) => {
-    const { config, booting_vms, VMRun, helper_functions } = data;
+    const { config, booting_vms, shutting_down_vms, VMRun, helper_functions } = data;
     const { edit_vmrun_opts, query_vm_id_power_state } = helper_functions;
 
     const vm_id = data.args[0];
@@ -28,6 +28,11 @@ const call: CommandCall = async (in_message, data) => {
 
     if (booting_vms.includes(vm_id)) {
         in_message.reply("Cannot stop VM whilst booting.");
+        return;
+    }
+
+    if (shutting_down_vms.includes(vm_id)) {
+        in_message.reply("VM is already shutting down.");
         return;
     }
 
@@ -162,9 +167,13 @@ const call: CommandCall = async (in_message, data) => {
 
     await out_message.edit({ embeds: [embed] });
 
+    shutting_down_vms.push(vm_id);
+
     // stop the VM and update the status message
     // uses raw vmrun rather than poweroff/shutdown methods to easily allow for soft/hard stop choice
     VMRun_mod.vmrun("stop", [vmx_path, stop_type]).then(() => {
+        shutting_down_vms.splice(shutting_down_vms.indexOf(vm_id), 1); // remove the VM from the shutting down list
+
         console.log(`VM ${vm_id} stopped.`);
 
         embed = new embeds.SuccessEmbed()

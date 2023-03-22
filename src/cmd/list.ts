@@ -10,7 +10,7 @@ const MAX_TITLE_LENGTH = 256;
 const MAX_VALUE_LENGTH = 1024;
 
 const call: CommandCall = async (in_message, data) => {
-    const { config, booting_vms, helper_functions } = data;
+    const { config, booting_vms, shutting_down_vms, helper_functions } = data;
     const { list_running_vm_ids } = helper_functions;
 
     // first arg or 1
@@ -40,8 +40,15 @@ const call: CommandCall = async (in_message, data) => {
 
     embed = new embeds.PagedListEmbed()
         .setTitle("Available VMs")
-        // use proper pluralisation
-        .setDescription(`There ${powered_vms.length === 1 ? "is" : "are"} ${powered_vms.length} powered on VM${powered_vms.length === 1 ? "" : "s"}.`);
+        // info with proper pluralisation. has some ugly inline code but it keeps it compact.
+        .setDescription(`There ${Object.keys(config.vmware.vm_list).length === 1 ? "is" : "are"} ${Object.keys(config.vmware.vm_list).length} VM${Object.keys(config.vmware.vm_list).length === 1 ? "" : "s"} in total.
+        
+        There ${powered_vms.length === 1 ? "is" : "are"} ${powered_vms.length} powered on VM${powered_vms.length === 1 ? "" : "s"}.
+        There ${booting_vms.length === 1 ? "is" : "are"} ${booting_vms.length} VM${booting_vms.length === 1 ? "" : "s"} booting.
+        There ${shutting_down_vms.length === 1 ? "is" : "are"} ${shutting_down_vms.length} VM${shutting_down_vms.length === 1 ? "" : "s"} shutting down.
+        There ${Object.keys(config.vmware.vm_list).length - powered_vms.length === 1 ? "is" : "are"} ${Object.keys(config.vmware.vm_list).length - powered_vms.length} VM${Object.keys(config.vmware.vm_list).length - powered_vms.length === 1 ? "" : "s"} unpowered.
+
+        Key: ${embeds.Icons.POWERED} = Powered, ${embeds.Icons.BOOTING} = Booting, ${embeds.Icons.SHUTTING_DOWN} = Shutting down, ${embeds.Icons.UNPOWERED} = Unpowered`);
 
     // TODO: move this pagniation to paged list embed class
 
@@ -68,15 +75,14 @@ const call: CommandCall = async (in_message, data) => {
         const name = vm.name;
         const desc = vm.description.length <= MAX_VALUE_LENGTH ? vm.description : vm.description.slice(0, MAX_VALUE_LENGTH - 3) + "...";
 
-        const powered = powered_vms.includes(vm_id);
-        const booting = booting_vms.includes(vm_id);
-
         // choose the correct emoji for the power state
         let power_light = "";
-        if (powered) {
+        if (powered_vms.includes(vm_id)) {
             power_light = embeds.Icons.POWERED;
-        } else if (booting) {
+        } else if (booting_vms.includes(vm_id)) {
             power_light = embeds.Icons.BOOTING;
+        } else if (shutting_down_vms.includes(vm_id)) {
+            power_light = embeds.Icons.SHUTTING_DOWN;
         } else {
             power_light = embeds.Icons.UNPOWERED;
         }

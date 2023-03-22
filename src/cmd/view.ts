@@ -11,7 +11,7 @@ import { AttachmentBuilder } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 
 const call: CommandCall = async (in_message, data) => {
-    const { config, booting_vms, VMRun, helper_functions } = data;
+    const { config, booting_vms, shutting_down_vms, VMRun, helper_functions } = data;
     const { edit_vmrun_opts, wait_for_file_to_exist, query_vm_id_power_state } = helper_functions;
 
     const vm_id = data.args[0];
@@ -30,6 +30,11 @@ const call: CommandCall = async (in_message, data) => {
 
     if (booting_vms.includes(vm_id)) {
         in_message.reply("VM is still booting.");
+        return;
+    }
+
+    if (shutting_down_vms.includes(vm_id)) {
+        in_message.reply("Cannot take screenshot whilst shutting down.");
         return;
     }
 

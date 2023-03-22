@@ -124,8 +124,10 @@ client.on("ready", async (): Promise<void> => {
     }
 });
 
-// booting is the lock on powering the vm once a request is made, not the actual os' state
+// booting is the lock on the vm once a start request is made, which is unlocked when the bios is ready
+// shutting down is the lock on the vm once a stop request is made, which is unlocked when the vm is fully shut down
 const booting_vms = [];
+const shutting_down_vms = [];
 
 client.on("messageCreate", async (in_message: Message): Promise<void> => {
     if (in_message.author.bot) {
@@ -203,6 +205,7 @@ client.on("messageCreate", async (in_message: Message): Promise<void> => {
                 commands: commands,
                 config: config,
                 booting_vms: booting_vms,
+                shutting_down_vms: shutting_down_vms,
                 VMRun: VMRun, // passed to maintain state
                 helper_functions: helper_funcs, // passed to maintain state
             };
