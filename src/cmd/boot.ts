@@ -65,13 +65,13 @@ const call: CommandCall = async (message, data) => {
     console.log(`Booting VM ${vm_id}...`);
     booting_vms.push(vm_id);
 
-    const boot_embed = new Discord.EmbedBuilder()
+    const embed = new Discord.EmbedBuilder()
         .setColor(0xFFFF00)
         .setTitle(":yellow_circle: Booting VM")
         .setDescription(`VM ${vm_id} is booting...`)
         .setTimestamp();
     
-    const boot_msg = await message.reply({ embeds: [boot_embed] });
+    const msg = await message.reply({ embeds: [embed] });
 
     // set the vmrun options if overridden in the config
     let VMRun_mod = VMRun;
@@ -94,13 +94,13 @@ const call: CommandCall = async (message, data) => {
 
         console.log(`VM ${vm_id} booted.`);
         
-        const booted_embed = new Discord.EmbedBuilder()
+        embed
             .setColor(0x00FF00)
             .setTitle(":green_circle: VM Booted")
             .setDescription(`VM ${vm_id} has been booted.`)
             .setTimestamp();
 
-        boot_msg.edit({ embeds: [booted_embed] });
+        msg.edit({ embeds: [embed] });
 
         if (disconnect_sound) {
             // disconnect the sound device from the VM
@@ -115,13 +115,13 @@ const call: CommandCall = async (message, data) => {
 
         console.error(`Error booting VM ${vm_id}: ${err}`);
 
-        const error_embed = new Discord.EmbedBuilder()
+        embed
             .setColor(0xFF0000)
             .setTitle(":red_circle: Error Booting VM")
             .setDescription(`An error occurred while booting VM ${vm_id}. Please consult the bot administrator.`)
             .setTimestamp();
 
-        boot_msg.edit({ embeds: [error_embed] });
+        msg.edit({ embeds: [embed] });
     });
 };
 

@@ -76,13 +76,13 @@ const call: CommandCall = async (message, data) => {
 
     console.log(`Stopping VM ${vm_id}...`);
 
-    const stopping_embed = new Discord.EmbedBuilder()
+    const embed = new Discord.EmbedBuilder()
         .setColor(0xFFFF00)
         .setTitle(":yellow_circle: Stopping VM")
         .setDescription(`VM ${vm_id} is stopping...`)
         .setTimestamp();
 
-    const stop_msg = await message.reply({ embeds: [stopping_embed] });
+    const msg = await message.reply({ embeds: [embed] });
 
     // set the vmrun options if overridden in the config
     let VMRun_mod = VMRun;
@@ -95,7 +95,7 @@ const call: CommandCall = async (message, data) => {
 
     if (stop_type === "hard") {
         if (no_warn !== "!") {
-            const confirm_embed = new Discord.EmbedBuilder()
+            embed
                 .setColor(0xFFAA00)
                 .setTitle(":orange_circle: Confirm Hard Stop")
                 .setDescription(`**Are you sure you want to hard stop VM ${vm_id}?**
@@ -109,10 +109,10 @@ const call: CommandCall = async (message, data) => {
                 .setFooter({ text: "This message will self-destruct in 15 seconds." })
                 .setTimestamp();
 
-            await stop_msg.edit({ embeds: [confirm_embed] });
+            await msg.edit({ embeds: [embed] });
 
-            await stop_msg.react("✅");
-            await stop_msg.react("❌");
+            await msg.react("✅");
+            await msg.react("❌");
 
             const filter = (reaction, user) => {
                 return (reaction.emoji.name === "✅" || reaction.emoji.name === "❌") && user.id === message.author.id;
@@ -130,7 +130,7 @@ const call: CommandCall = async (message, data) => {
                 // otherwise, continue as normal
             } catch (err) {
                 console.warn(`Error or abort: ${err}`);
-                stop_msg.delete();
+                msg.delete();
                 message.reply(`Aborted hard stop of VM ${vm_id}.`);
                 return;
             }
@@ -148,7 +148,7 @@ const call: CommandCall = async (message, data) => {
             .setDescription(`VM ${vm_id} has been stopped`)
             .setTimestamp();
 
-        stop_msg.edit({ embeds: [stopped_embed] });
+        msg.edit({ embeds: [stopped_embed] });
     }).catch((err) => {
         console.error(`Error stopping VM ${vm_id}: ${err}`);
 
@@ -158,7 +158,7 @@ const call: CommandCall = async (message, data) => {
             .setDescription(`An error occurred while stopping VM ${vm_id}. Please consult the bot administrator.`)
             .setTimestamp();
 
-        stop_msg.edit({ embeds: [error_embed] });
+        msg.edit({ embeds: [error_embed] });
     });
 };
 

@@ -58,13 +58,13 @@ const call: CommandCall = async (message, data) => {
 
     console.log(`Viewing VM ${vm_id}...`);
 
-    const prep_view_embed = new Discord.EmbedBuilder()
+    const embed = new Discord.EmbedBuilder()
         .setColor(0xFFFF00)
         .setTitle(":camera: Screenshot Loading")
         .setDescription(`Taking a screenshot of VM ${vm_id}...`)
         .setTimestamp();
 
-    const view_msg = await message.reply({ embeds: [prep_view_embed] });
+    const msg = await message.reply({ embeds: [embed] });
 
     // set the vmrun options if overridden in the config
     let VMRun_mod = VMRun;
@@ -96,14 +96,14 @@ const call: CommandCall = async (message, data) => {
 
         // wait for the screenshot to be written to the filesystem, helps prevent ENOENT errors if vmrun returns before the file is written
         wait_for_file_to_exist(image_path, 5000, 10).then(async () => {
-            const view_embed = new Discord.EmbedBuilder()
+            embed
                 .setColor(0x00FF00)
                 .setTitle(":camera_with_flash: Screenshot Taken")
                 .setImage(`attachment://${image_name}`)
                 .setTimestamp();
 
             // attach the screenshot to the message
-            await view_msg.edit({ embeds: [view_embed], files: [new Discord.AttachmentBuilder(image_path)] });
+            await msg.edit({ embeds: [embed], files: [new Discord.AttachmentBuilder(image_path)] });
 
             // delete the screenshot file
             fs.unlink(image_path, (err) => {
@@ -116,26 +116,26 @@ const call: CommandCall = async (message, data) => {
         }).catch((err) => {
             console.error(`Error waiting for screenshot file to exist for VM ${vm_id}: ${err}`);
 
-            const error_embed = new Discord.EmbedBuilder()
+            embed
                 .setColor(0xFF0000)
                 .setTitle(":x: Screenshot Timeout")
                 .setDescription(`An timeout occurred while taking a screenshot of VM ${vm_id}. Please consult the bot administrator.`)
                 .setTimestamp();
 
-            view_msg.edit({ embeds: [error_embed] });
+            msg.edit({ embeds: [embed] });
 
             // keep the screenshot file around for debugging if it exists
         });
     }).catch((err) => {
         console.log(`Error taking screenshot for VM ${vm_id}: ${err}`);
 
-        const error_embed = new Discord.EmbedBuilder()
+        embed
             .setColor(0xFF0000)
             .setTitle(":x: Screenshot Failed")
             .setDescription(`An error occurred while taking a screenshot of VM ${vm_id}. Please consult the bot administrator.`)
             .setTimestamp();
 
-        view_msg.edit({ embeds: [error_embed] });
+        msg.edit({ embeds: [embed] });
 
         // keep the screenshot file around for debugging
     });
