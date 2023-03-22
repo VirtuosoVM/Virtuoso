@@ -36,7 +36,7 @@ const call: CommandCall = async (message, data) => {
     // validate the vmx path exists on the filesystem
     if (!fs.existsSync(vmx_path)) {
         message.reply("VMX file does not exist. Please consult the bot administrator.");
-        console.log(`VMX file does not exist: ${vmx_path} for VM ${vm_id}`);
+        console.error(`VMX file does not exist: ${vmx_path} for VM ${vm_id}`);
         return;
     }
     
@@ -85,13 +85,13 @@ const call: CommandCall = async (message, data) => {
             VMRun_mod.vmrun("disconnectNamedDevice", [vmx_path, "sound"]).then(() => {
                 console.log(`Disconnected sound device from VM ${vm_id}.`);
             }).catch((err) => {
-                console.log(`Error disconnecting sound device from VM ${vm_id}: ${err}`);
+                console.error(`Error disconnecting sound device from VM ${vm_id}: ${err}`);
             });
         }
     }).catch((err) => {
         booting_vms.splice(booting_vms.indexOf(vm_id), 1); // remove from booting list
 
-        console.log(`Error booting VM ${vm_id}: ${err}`);
+        console.error(`Error booting VM ${vm_id}: ${err}`);
 
         const error_embed = new Discord.EmbedBuilder()
             .setColor(0xFF0000)

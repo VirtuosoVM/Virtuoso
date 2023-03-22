@@ -53,7 +53,7 @@ const call: CommandCall = async (message, data) => {
     // validate the vmx path exists on the filesystem
     if (!fs.existsSync(vmx_path)) {
         message.reply("VMX file does not exist. Please consult the bot administrator.");
-        console.log(`VMX file does not exist: ${vmx_path} for VM ${vm_id}`);
+        console.error(`VMX file does not exist: ${vmx_path} for VM ${vm_id}`);
         return;
     }
 
