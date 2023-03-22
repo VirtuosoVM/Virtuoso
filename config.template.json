@@ -30,7 +30,8 @@
                     }
                 }
             }
-        }
+        },
+        "screenshot_dir": "./screenshots/"
     },
     "commands": {
         "disabled": [

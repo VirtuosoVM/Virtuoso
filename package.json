@@ -29,6 +29,7 @@
     "rimraf": "^4.4.0",
     "source-map-support": "^0.5.21",
     "tx2": "^1.0.5",
+    "uuid": "^9.0.0",
     "vmrun": "github:obfuscatedgenerated/node-vmrun"
   },
   "devDependencies": {
