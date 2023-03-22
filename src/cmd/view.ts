@@ -9,6 +9,22 @@ import * as path from "path";
 
 import { v4 as uuidv4 } from "uuid";
 
+const wait_for_file_to_exist = (file_path: string, timeout: number, interval_ms: number): Promise<void> => {
+    return new Promise((resolve, reject) => {
+        const start_time = Date.now();
+
+        const interval = setInterval(() => {
+            if (fs.existsSync(file_path)) {
+                clearInterval(interval);
+                resolve();
+            } else if (Date.now() - start_time > timeout) {
+                clearInterval(interval);
+                reject();
+            }
+        }, interval_ms);
+    });
+};
+
 const call: CommandCall = async (message, data) => {
     const { Discord, config, powered_vms, VMRun, helper_functions } = data;
     const { edit_vmrun_opts } = helper_functions;
@@ -79,14 +95,38 @@ const call: CommandCall = async (message, data) => {
     VMRun_mod.captureScreen(vmx_path, image_path).then(() => {
         console.log(`Screenshot taken for VM ${vm_id} to ${image_path}.`);
 
-        const view_embed = new Discord.EmbedBuilder()
-            .setColor(0x00FF00)
-            .setTitle(":camera_with_flash: Screenshot Taken")
-            .setImage(`attachment://${image_name}`)
-            .setTimestamp();
+        // wait for the screenshot to be written to the filesystem, helps prevent ENOENT errors if vmrun returns before the file is written
+        wait_for_file_to_exist(image_path, 5000, 10).then(async () => {
+            const view_embed = new Discord.EmbedBuilder()
+                .setColor(0x00FF00)
+                .setTitle(":camera_with_flash: Screenshot Taken")
+                .setImage(`attachment://${image_name}`)
+                .setTimestamp();
 
-        // attach the screenshot to the message
-        view_msg.edit({ embeds: [view_embed], files: [new Discord.AttachmentBuilder(image_path)] });
+            // attach the screenshot to the message
+            await view_msg.edit({ embeds: [view_embed], files: [new Discord.AttachmentBuilder(image_path)] });
+
+            // delete the screenshot file
+            fs.unlink(image_path, (err) => {
+                if (err) {
+                    console.error(`Error deleting screenshot file for VM ${vm_id}: ${err}`);
+                } else {
+                    console.log(`Screenshot file deleted for VM ${vm_id}: ${image_path}`);
+                }
+            });
+        }).catch((err) => {
+            console.error(`Error waiting for screenshot file to exist for VM ${vm_id}: ${err}`);
+
+            const error_embed = new Discord.EmbedBuilder()
+                .setColor(0xFF0000)
+                .setTitle(":x: Screenshot Timeout")
+                .setDescription(`An timeout occurred while taking a screenshot of VM ${vm_id}. Please consult the bot administrator.`)
+                .setTimestamp();
+
+            view_msg.edit({ embeds: [error_embed] });
+
+            // keep the screenshot file around for debugging if it exists
+        });
     }).catch((err) => {
         console.log(`Error taking screenshot for VM ${vm_id}: ${err}`);
 
@@ -97,6 +137,8 @@ const call: CommandCall = async (message, data) => {
             .setTimestamp();
 
         view_msg.edit({ embeds: [error_embed] });
+
+        // keep the screenshot file around for debugging
     });
 };
 
