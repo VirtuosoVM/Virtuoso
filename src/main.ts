@@ -220,12 +220,12 @@ client.on("messageCreate", async (message: Message): Promise<void> => {
                 args: args,
                 cased_args: cased_args,
                 client: client,
-                Discord: Discord,
+                Discord: Discord, // passed to maintain state // TODO: is this necessary?, only the client should have state, the module may import its own Discord module
                 commands: commands,
                 config: config,
                 powered_vms: powered_vms, // TODO: actually query the VMs' power state. something could fail or the os could be shut down
                 booting_vms: booting_vms,
-                VMRun: VMRun,
+                VMRun: VMRun, // passed to maintain state
                 helper_functions: helper_functions,
             };
 
