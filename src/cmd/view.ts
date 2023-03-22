@@ -1,7 +1,5 @@
 // Takes a screenshot and presents it to the user.
 
-// Boots the VM with the given ID.
-
 import { CommandCall } from "../types";
 
 import * as fs from "fs";
