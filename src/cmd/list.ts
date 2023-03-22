@@ -2,7 +2,7 @@
 
 import { CommandCall, Entries } from "../types";
 
-import * as Discord from "discord.js";
+import * as embeds from "../embed_generator";
 
 // the API maximum is 25 fields per embed, but we don't want to make it too long
 const FIELD_LIMIT = 10;
@@ -21,8 +21,7 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
-    const embed = new Discord.EmbedBuilder()
-        .setColor(0xFF00FF)
+    let embed = new embeds.QueryPendingEmbed()
         .setTitle("Querying power states...")
         .setDescription("This may take some time...");
 
@@ -39,9 +38,10 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
-    embed.setColor(0x0000FF);
-    embed.setTitle("Available VMs");
-    embed.setDescription(null);
+    embed = new embeds.ListicleEmbed()
+        .setTitle("Available VMs");
+
+    // TODO: move this pagniation to listicle embed class
 
     const entries = Object.entries(config.vmware.vm_list) as Entries<typeof config.vmware.vm_list>;
     const page_count = Math.ceil(entries.length / FIELD_LIMIT);

@@ -2,9 +2,9 @@
 
 import { CommandCall } from "../types";
 
-import * as fs from "fs";
+import * as embeds from "../embed_generator";
 
-import * as Discord from "discord.js";
+import * as fs from "fs";
 
 const call: CommandCall = async (in_message, data) => {
     const { config, booting_vms, VMRun, helper_functions } = data;
@@ -29,8 +29,7 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
-    const embed = new Discord.EmbedBuilder()
-        .setColor(0xFF00FF)
+    let embed = new embeds.QueryPendingEmbed()
         .setTitle("Querying power state...")
         .setDescription("This shouldn't take long...");
 
@@ -78,9 +77,8 @@ const call: CommandCall = async (in_message, data) => {
     console.log(`Booting VM ${vm_id}...`);
     booting_vms.push(vm_id);
 
-    embed
-        .setColor(0xFFFF00)
-        .setTitle(":yellow_circle: Booting VM")
+    embed = new embeds.ActionPendingEmbed()
+        .setTitle("Booting VM")
         .setDescription(`VM ${vm_id} is booting...`)
         .setTimestamp();
     
@@ -107,9 +105,8 @@ const call: CommandCall = async (in_message, data) => {
 
         console.log(`VM ${vm_id} booted.`);
         
-        embed
-            .setColor(0x00FF00)
-            .setTitle(":green_circle: VM Booted")
+        embed = new embeds.SuccessEmbed()
+            .setTitle("VM Booted")
             .setDescription(`VM ${vm_id} has been booted.`)
             .setTimestamp();
 
@@ -128,9 +125,8 @@ const call: CommandCall = async (in_message, data) => {
 
         console.error(`Error booting VM ${vm_id}: ${err}`);
 
-        embed
-            .setColor(0xFF0000)
-            .setTitle(":red_circle: Error Booting VM")
+        embed = new embeds.ErrorEmbed()
+            .setTitle("Error Booting VM")
             .setDescription(`An error occurred while booting VM ${vm_id}. Please consult the bot administrator.`)
             .setTimestamp();
 

@@ -2,10 +2,12 @@
 
 import { CommandCall } from "../types";
 
+import * as embeds from "../embed_generator";
+
 import * as fs from "fs";
 import * as path from "path";
 
-import * as Discord from "discord.js";
+import { AttachmentBuilder } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 
 const call: CommandCall = async (in_message, data) => {
@@ -31,8 +33,7 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
-    const embed = new Discord.EmbedBuilder()
-        .setColor(0xFF00FF)
+    let embed = new embeds.QueryPendingEmbed()
         .setTitle("Querying power state...")
         .setDescription("This shouldn't take long...");
 
@@ -69,11 +70,7 @@ const call: CommandCall = async (in_message, data) => {
 
     console.log(`Viewing VM ${vm_id}...`);
 
-    embed
-        .setColor(0xFFFF00)
-        .setTitle(":camera: Screenshot Loading")
-        .setDescription(`Taking a screenshot of VM ${vm_id}...`)
-        .setTimestamp();
+    embed = new embeds.ScreenshotPendingEmbed(vm_id);
 
     await out_message.edit({ embeds: [embed] });
 
@@ -107,15 +104,10 @@ const call: CommandCall = async (in_message, data) => {
 
         // wait for the screenshot to be written to the filesystem, helps prevent ENOENT errors if vmrun returns before the file is written
         wait_for_file_to_exist(image_path, 5000, 10).then(async () => {
-            embed
-                .setColor(0x00FF00)
-                .setTitle(":camera_with_flash: Screenshot Taken")
-                .setDescription(`Screenshot of VM ${vm_id}:`)
-                .setImage(`attachment://${image_name}`)
-                .setTimestamp();
+            embed = new embeds.ScreenshotSuccessEmbed(vm_id, image_name);
 
             // attach the screenshot to the message
-            await out_message.edit({ embeds: [embed], files: [new Discord.AttachmentBuilder(image_path)] });
+            await out_message.edit({ embeds: [embed], files: [new AttachmentBuilder(image_path)] });
 
             // delete the screenshot file
             fs.unlink(image_path, (err) => {
@@ -128,10 +120,9 @@ const call: CommandCall = async (in_message, data) => {
         }).catch((err) => {
             console.error(`Error waiting for screenshot file to exist for VM ${vm_id}: ${err}`);
 
-            embed
-                .setColor(0xFF0000)
-                .setTitle(":x: Screenshot Timeout")
-                .setDescription(`An timeout occurred while taking a screenshot of VM ${vm_id}. Please consult the bot administrator.`)
+            embed = new embeds.FatalEmbed()
+                .setTitle("Screenshot Timeout")
+                .setDescription(`An timeout occurred while taking a screenshot of VM ${vm_id}.`)
                 .setTimestamp();
 
             out_message.edit({ embeds: [embed] });
@@ -141,10 +132,9 @@ const call: CommandCall = async (in_message, data) => {
     }).catch((err) => {
         console.log(`Error taking screenshot for VM ${vm_id}: ${err}`);
 
-        embed
-            .setColor(0xFF0000)
-            .setTitle(":x: Screenshot Failed")
-            .setDescription(`An error occurred while taking a screenshot of VM ${vm_id}. Please consult the bot administrator.`)
+        embed = new embeds.FatalEmbed()
+            .setTitle("Screenshot Error")
+            .setDescription(`An error occurred while taking a screenshot of VM ${vm_id}.`)
             .setTimestamp();
 
         out_message.edit({ embeds: [embed] });

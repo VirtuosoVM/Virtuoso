@@ -29,6 +29,8 @@ import * as fs from "fs";
 import * as helper_funcs from "./helper_funcs";
 const { update_vmrun_state, edit_vmrun_opts } = helper_funcs;
 
+import * as embeds from "./embed_generator";
+
 
 console.log(" --- Validating basic config... --- ");
 
@@ -156,11 +158,11 @@ client.on("messageCreate", async (in_message: Message): Promise<void> => {
 
     if (in_message.content.toLowerCase().startsWith(config.discord.prefix) || in_message.content.toLowerCase().startsWith(client.user.toString())) {
         if (in_message.author.id !== config.discord.owner_id && !config.discord.authorised_admin_user_ids.includes(in_message.author.id) && !config.discord.authorised_guest_user_ids.includes(in_message.author.id)) {
-            const embed = new Discord.EmbedBuilder()
-                .setColor(0xFF0000)
-                .setTitle(":x: Unauthorised")
+            const embed = new embeds.FatalEmbed()
+                .setTitle("Unauthorised")
                 .setDescription("You are not authorised to use this bot.")
                 .setFooter({ text: "This bot is limited to authorised users only." });
+                
             in_message.reply({ embeds: [embed] });
             return;
         }
@@ -178,11 +180,11 @@ client.on("messageCreate", async (in_message: Message): Promise<void> => {
 
             console.log(`Ratelimit hit for ${in_message.author.id}`);
 
-            const embed = new Discord.EmbedBuilder()
-                .setColor(0xFF0000)
-                .setTitle(":x: Ratelimit hit")
+            const embed = new embeds.FatalEmbed()
+                .setTitle("Ratelimit hit")
                 .setDescription("Slow down, you're going too fast!")
                 .setFooter({ text: "This bot is limited to 1 command per 2 seconds." });
+
             in_message.reply({ embeds: [embed] });
             return;
         }
@@ -213,11 +215,10 @@ client.on("messageCreate", async (in_message: Message): Promise<void> => {
                 call(in_message, data); // call command with message and optional data
             } catch (e) {
                 console.error(e);
-                const embed = new Discord.EmbedBuilder()
-                    .setColor(0xFF0000)
-                    .setTitle(":x: Error")
-                    .setDescription("An error occurred while executing the command.")
-                    .setFooter({ text: "Please contact the bot administrator if this error persists." });
+                const embed = new embeds.FatalEmbed()
+                    .setTitle("Error")
+                    .setDescription("An error occurred while executing the command.");
+
                 in_message.reply({ embeds: [embed] });
             } // TODO: DRY different types of embeds and errors for consistency into class or function
             // TODO: IDEA: embed diff tool using custom dictionary. only changes embed properties that are different from existing embed to save on instances

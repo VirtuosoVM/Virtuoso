@@ -1,0 +1,181 @@
+import { EmbedBuilder } from "discord.js";
+
+// TODO: use as error logger
+// TODO: make commonly reused embeds (e.g. querying power state, etc.) into classes
+
+export enum Icons {
+    SUCCESS = ":green_circle:",
+    ERROR = ":red_circle:",
+    INFO = ":white_circle:",
+    ACTION_PENDING = ":yellow_circle:",
+    QUERY_PENDING = ":purple_circle:",
+    LISTICLE = ":blue_circle:",
+    CONFIRMATION = ":orange_circle:",
+    ARGUMENT_ISSUE = ":black_circle:",
+
+    FATAL = ":x:",
+
+    YES = ":white_check_mark:",
+    NO = ":x:",
+
+    SCREENSHOT_PENDING = ":camera:",
+    SCREENSHOT_SUCCESS = ":camera_with_flash:",
+}
+
+class BaseEmbed extends EmbedBuilder {
+    #title_icon = "";
+
+    setTitleIconless(title: string) {
+        super.setTitle(title);
+        return this;
+    }
+
+    setTitle(title: string) {
+        if (this.#title_icon !== "") {
+            super.setTitle(`${this.#title_icon} ${title}`);
+            return this;
+        } else {
+            return this.setTitleIconless(title);
+        }
+    }
+
+    updateTitleIcon() {
+        if (this.#title_icon !== "") {
+            const title = super.data.title;
+
+            if (title) {
+                super.setTitle(`${this.#title_icon} ${title}`);
+            }
+        }
+    }
+
+    setTitleIcon(icon: string) {
+        this.#title_icon = icon;
+        return this;
+    }
+
+    constructor() {
+        super();
+
+        this
+            .setColor(0x000000)
+            .setAuthor({ name: "Virtuoso" });
+    }
+}
+
+export class InfoEmbed extends BaseEmbed {
+    constructor() {
+        super();
+
+        this
+            .setColor(0xFFFFFF)
+            .setTitleIcon(Icons.INFO);
+    }
+}
+
+export class SuccessEmbed extends BaseEmbed {
+    constructor() {
+        super();
+
+        this
+            .setColor(0x00FF00)
+            .setTitleIcon(Icons.SUCCESS);
+    }
+}
+
+export class ErrorEmbed extends BaseEmbed {
+    constructor() {
+        super();
+
+        this
+            .setColor(0xFF0000)
+            .setTitleIcon(Icons.ERROR);
+    }
+}
+
+export class ActionPendingEmbed extends BaseEmbed {
+    constructor() {
+        super();
+
+        this
+            .setColor(0xFFFF00)
+            .setTitleIcon(Icons.ACTION_PENDING);
+    }
+}
+
+export class QueryPendingEmbed extends BaseEmbed {
+    constructor() {
+        super();
+
+        this
+            .setColor(0xFF00FF)
+            .setTitleIcon(Icons.QUERY_PENDING);
+    }
+}
+
+export class ListicleEmbed extends BaseEmbed {
+    constructor() {
+        super();
+
+        this
+            .setColor(0x0000FF)
+            .setTitleIcon(Icons.LISTICLE);
+    }
+}
+
+export class FatalEmbed extends BaseEmbed {
+    constructor() {
+        super();
+
+        this
+            .setColor(0xFF0000)
+            .setTitleIcon(Icons.FATAL)
+            .setFooter({ text: "Please consult with the bot administrator." })
+    }
+}
+
+export class ConfirmationEmbed extends BaseEmbed {
+    constructor() {
+        super();
+
+        this
+            .setColor(0xFFAA00)
+            .setTitleIcon(Icons.CONFIRMATION);
+    }
+}
+
+export class ArgumentIssueEmbed extends BaseEmbed {
+    constructor() {
+        super();
+
+        this
+            .setColor(0xCCCCCC)
+            .setTitleIcon(Icons.ARGUMENT_ISSUE);
+    }
+}
+
+
+export class ScreenshotPendingEmbed extends ActionPendingEmbed {
+    constructor(vm_id: string) {
+        super();
+
+        this
+            .setTitleIcon(Icons.SCREENSHOT_PENDING)
+            .setTitle("Screenshot Loading")
+            .setDescription(`Taking a screenshot of VM ${vm_id}...`)
+            .setTimestamp();
+    }
+}
+
+export class ScreenshotSuccessEmbed extends SuccessEmbed {
+    constructor(vm_id: string, image_name: string) {
+        super();
+
+        this
+            .setTitleIcon(Icons.SCREENSHOT_SUCCESS)
+            .setTitle("Screenshot Taken")
+            .setDescription(`Screenshot of VM ${vm_id}:`)
+            .setImage(`attachment://${image_name}`)
+            .setTimestamp();
+    }
+}

@@ -2,9 +2,9 @@
 
 import { CommandCall } from "../types";
 
-import * as fs from "fs";
+import * as embeds from "../embed_generator";
 
-import * as Discord from "discord.js";
+import * as fs from "fs";
 
 const call: CommandCall = async (in_message, data) => {
     const { config, booting_vms, VMRun, helper_functions } = data;
@@ -31,8 +31,7 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
-    const embed = new Discord.EmbedBuilder()
-        .setColor(0xFF00FF)
+    let embed = new embeds.QueryPendingEmbed()
         .setTitle("Querying power state...")
         .setDescription("This shouldn't take long...");
 
@@ -103,9 +102,8 @@ const call: CommandCall = async (in_message, data) => {
     if (stop_type === "hard") {
         if (no_warn !== "!") {
             // TODO: DRY confirmations into a class or helper function
-            embed
-                .setColor(0xFFAA00)
-                .setTitle(":orange_circle: Confirm Hard Stop")
+            embed = new embeds.ConfirmationEmbed()
+                .setTitle("Confirm Hard Stop")
                 .setDescription(`**Are you sure you want to hard stop VM ${vm_id}?**
 
                 This emulates unplugging the computer at the wall. This will cause the VM to lose unsaved data and could lead to corruption.
@@ -157,11 +155,9 @@ const call: CommandCall = async (in_message, data) => {
 
     console.log(`Doing stop for VM ${vm_id}...`);
 
-    embed
-        .setColor(0xFFFF00)
-        .setTitle(":yellow_circle: Stopping VM")
+    embed = new embeds.ActionPendingEmbed()
+        .setTitle("Stopping VM")
         .setDescription(`VM ${vm_id} is stopping...`)
-        .setFooter(null)
         .setTimestamp();
 
     await out_message.edit({ embeds: [embed] });
@@ -171,9 +167,8 @@ const call: CommandCall = async (in_message, data) => {
     VMRun_mod.vmrun("stop", [vmx_path, stop_type]).then(() => {
         console.log(`VM ${vm_id} stopped.`);
 
-        embed
-            .setColor(0x00FF00)
-            .setTitle(":green_circle: VM Stopped")
+        embed = new embeds.SuccessEmbed()
+            .setTitle("VM Stopped")
             .setDescription(`VM ${vm_id} has been stopped.`)
             .setTimestamp();
 
@@ -181,10 +176,9 @@ const call: CommandCall = async (in_message, data) => {
     }).catch((err) => {
         console.error(`Error stopping VM ${vm_id}: ${err}`);
 
-        embed
-            .setColor(0xFF0000)
-            .setTitle(":red_circle: Error Stopping VM")
-            .setDescription(`An error occurred while stopping VM ${vm_id}. Please consult the bot administrator.`)
+        embed = new embeds.FatalEmbed()
+            .setTitle("Error Stopping VM")
+            .setDescription(`An error occurred while stopping VM ${vm_id}.`)
             .setTimestamp();
 
         out_message.edit({ embeds: [embed] });
