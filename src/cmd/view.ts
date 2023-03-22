@@ -8,8 +8,8 @@ import * as path from "path";
 import { v4 as uuidv4 } from "uuid";
 
 const call: CommandCall = async (message, data) => {
-    const { Discord, config, powered_vms, VMRun, helper_functions } = data;
-    const { edit_vmrun_opts, wait_for_file_to_exist } = helper_functions;
+    const { Discord, config, booting_vms, VMRun, helper_functions } = data;
+    const { edit_vmrun_opts, wait_for_file_to_exist, query_vm_id_power_state } = helper_functions;
 
     const vm_id = data.args[0];
 
@@ -25,7 +25,24 @@ const call: CommandCall = async (message, data) => {
         return;
     }
 
-    if (!powered_vms.includes(vm_id)) {
+    if (booting_vms.includes(vm_id)) {
+        message.reply("VM is still booting.");
+        return;
+    }
+
+    let is_powered: boolean;
+
+    // we're doing a check on the ID earlier so we don't have to consult the filesystem for the VMX path
+    // even if the code for this check will run slower, it's still faster than querying the filesystem
+    try {
+        is_powered = await query_vm_id_power_state(vm_id);
+    } catch (err) {
+        message.reply("An error occurred while querying the VM power state. Please consult the bot administrator.");
+        console.error(`Error querying VM power state for VM ${vm_id}: ${err}`);
+        return;
+    }
+
+    if (!is_powered) {
         message.reply("VM is not powered on.");
         return;
     }

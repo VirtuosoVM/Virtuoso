@@ -126,6 +126,9 @@ client.on("ready", async (): Promise<void> => {
     }
 });
 
+// booting is the lock on powering the vm once a request is made, not the actual os' state
+const booting_vms = [];
+
 // more helper functions
 
 const wait_for_file_to_exist = (file_path: string, timeout: number, interval_ms: number): Promise<void> => {
@@ -144,13 +147,84 @@ const wait_for_file_to_exist = (file_path: string, timeout: number, interval_ms:
     });
 };
 
+const list_running_vm_ids = async (): Promise<string[]> => {
+    const vm = config.vmware.vm_list;
+    const id_list = [];
+    const running_vms = await VMRun.list();
+
+    // TODO: should this be the other way? i.e. iterate over running_vms and check if they are in the config
+    for (const vm_id in vm) {
+        const vmx_path = vm[vm_id].vmx;
+
+        if (!vmx_path) {
+            throw new Error(`VMX path not specified for VM ${vm_id}`);
+        }
+
+        // validate the vmx path exists on the filesystem
+        if (!fs.existsSync(vmx_path)) {
+            throw new Error(`VMX file does not exist: ${vmx_path} for VM ${vm_id}`);
+        }
+
+        // for every vm that is powered on, match the vmx path to the vm id
+        for (const running_vm of running_vms) {
+            if (running_vm === vmx_path) {
+                id_list.push(vm_id);
+            }
+        }
+    }
+
+    return id_list;
+};
+
+const query_vm_id_power_state = async (vm_id: string): Promise<boolean> => {
+    // TODO: DRY similar code in other commands
+    const vm = config.vmware.vm_list[vm_id];
+
+    if (!vm) {
+        throw new Error(`Invalid VM ID: ${vm_id}`);
+    }
+
+    const vmx_path = vm.vmx;
+
+    // validate the vmx path exists on the filesystem
+    if (!fs.existsSync(vmx_path)) {
+        throw new Error(`VMX file does not exist: ${vmx_path} for VM ${vm_id}`);
+    }
+
+    // set the vmrun options if overridden in the config
+    let VMRun_mod = VMRun;
+
+    if (vm["options_override"]) {
+        const overriden_vmrun_opts = {};
+        edit_vmrun_opts(vm.options_override, overriden_vmrun_opts);
+        VMRun_mod = VMRun_mod.withModifiedOptions(overriden_vmrun_opts);
+    }
+
+    // repeated code so we don't iterate over the entire list of vms
+    const running_vms = await VMRun_mod.list();
+
+    // for every vm that is powered on, match the vmx path to the vm id
+    for (const running_vm of running_vms) {
+        if (running_vm === vmx_path) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+const query_vm_path_power_state = async (vmx_path: string): Promise<boolean> => {
+    const running_vms = await VMRun.list();
+    return running_vms.includes(vmx_path);
+};
+
 const helper_functions = {
     "edit_vmrun_opts": edit_vmrun_opts,
     "wait_for_file_to_exist": wait_for_file_to_exist,
+    "list_running_vm_ids": list_running_vm_ids,
+    "query_vm_id_power_state": query_vm_id_power_state,
+    "query_vm_path_power_state": query_vm_path_power_state
 };
-
-const powered_vms = [];
-const booting_vms = [];
 
 client.on("messageCreate", async (message: Message): Promise<void> => {
     if (message.author.bot) {
@@ -223,7 +297,6 @@ client.on("messageCreate", async (message: Message): Promise<void> => {
                 Discord: Discord, // passed to maintain state // TODO: is this necessary?, only the client should have state, the module may import its own Discord module
                 commands: commands,
                 config: config,
-                powered_vms: powered_vms, // TODO: actually query the VMs' power state. something could fail or the os could be shut down
                 booting_vms: booting_vms,
                 VMRun: VMRun, // passed to maintain state
                 helper_functions: helper_functions,

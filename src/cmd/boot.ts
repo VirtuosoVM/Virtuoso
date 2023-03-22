@@ -4,8 +4,8 @@ import { CommandCall } from "../types";
 import * as fs from "fs";
 
 const call: CommandCall = async (message, data) => {
-    const { Discord, config, powered_vms, booting_vms, VMRun, helper_functions } = data;
-    const { edit_vmrun_opts } = helper_functions;
+    const { Discord, config, booting_vms, VMRun, helper_functions } = data;
+    const { edit_vmrun_opts, query_vm_id_power_state } = helper_functions;
 
     const vm_id = data.args[0];
 
@@ -21,13 +21,25 @@ const call: CommandCall = async (message, data) => {
         return;
     }
 
-    if (powered_vms.includes(vm_id)) {
-        message.reply("VM is already powered on.");
+    if (booting_vms.includes(vm_id)) {
+        message.reply("VM is already booting.");
         return;
     }
 
-    if (booting_vms.includes(vm_id)) {
-        message.reply("VM is already booting.");
+    let is_powered: boolean;
+
+    // we're doing a check on the ID earlier so we don't have to consult the filesystem for the VMX path
+    // even if the code for this check will run slower, it's still faster than querying the filesystem
+    try {
+        is_powered = await query_vm_id_power_state(vm_id);
+    } catch (err) {
+        message.reply("An error occurred while querying the VM power state. Please consult the bot administrator.");
+        console.error(`Error querying VM power state for VM ${vm_id}: ${err}`);
+        return;
+    }
+
+    if (is_powered) {
+        message.reply("VM is already powered on.");
         return;
     }
 
@@ -39,6 +51,16 @@ const call: CommandCall = async (message, data) => {
         console.error(`VMX file does not exist: ${vmx_path} for VM ${vm_id}`);
         return;
     }
+
+    // we're doing a check on the ID earlier so we don't have to consult the filesystem for the VMX path
+    // even if the code for the check will run slower, it's still faster than querying the filesystem
+    //try {
+    //    is_powered = await query_vm_path_power_state(vm.vmx);
+    //} catch (err) {
+    //    message.reply("An error occurred while querying the VM power state. Please consult the bot administrator.");
+    //    console.error(`Error querying VM power state for VM ${vm_id}: ${err}`);
+    //    return;
+    //}
     
     console.log(`Booting VM ${vm_id}...`);
     booting_vms.push(vm_id);
@@ -68,7 +90,7 @@ const call: CommandCall = async (message, data) => {
     // start the VM and update the status message
     VMRun_mod.start(vmx_path).then(() => {
         booting_vms.splice(booting_vms.indexOf(vm_id), 1); // remove from booting list
-        powered_vms.push(vm_id);
+        //powered_vms.push(vm_id); // no longer needed since we're querying the power state each time
 
         console.log(`VM ${vm_id} booted.`);
         
