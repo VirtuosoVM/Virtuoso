@@ -1,4 +1,4 @@
-# vCordPC
+# Virtuoso
 
 todo: make this readme better
 
