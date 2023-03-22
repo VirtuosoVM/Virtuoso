@@ -99,6 +99,7 @@ const call: CommandCall = async (message, data) => {
             embed
                 .setColor(0x00FF00)
                 .setTitle(":camera_with_flash: Screenshot Taken")
+                .setDescription(`Screenshot of VM ${vm_id}:`)
                 .setImage(`attachment://${image_name}`)
                 .setTimestamp();
 
