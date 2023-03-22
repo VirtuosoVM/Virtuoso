@@ -5,10 +5,11 @@ import { CommandCall } from "../types";
 import * as fs from "fs";
 import * as path from "path";
 
+import * as Discord from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 
 const call: CommandCall = async (in_message, data) => {
-    const { Discord, config, booting_vms, VMRun, helper_functions } = data;
+    const { config, booting_vms, VMRun, helper_functions } = data;
     const { edit_vmrun_opts, wait_for_file_to_exist, query_vm_id_power_state } = helper_functions;
 
     const vm_id = data.args[0];

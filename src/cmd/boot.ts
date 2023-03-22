@@ -1,10 +1,13 @@
 // Boots the VM with the given ID.
 
 import { CommandCall } from "../types";
+
 import * as fs from "fs";
 
+import * as Discord from "discord.js";
+
 const call: CommandCall = async (in_message, data) => {
-    const { Discord, config, booting_vms, VMRun, helper_functions } = data;
+    const { config, booting_vms, VMRun, helper_functions } = data;
     const { edit_vmrun_opts, query_vm_id_power_state } = helper_functions;
 
     const vm_id = data.args[0];

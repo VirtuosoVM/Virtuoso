@@ -2,13 +2,15 @@
 
 import { CommandCall, Entries } from "../types";
 
+import * as Discord from "discord.js";
+
 // the API maximum is 25 fields per embed, but we don't want to make it too long
 const FIELD_LIMIT = 10;
 const MAX_TITLE_LENGTH = 256;
 const MAX_VALUE_LENGTH = 1024;
 
 const call: CommandCall = async (in_message, data) => {
-    const { Discord, config, booting_vms, helper_functions } = data;
+    const { config, booting_vms, helper_functions } = data;
     const { list_running_vm_ids } = helper_functions;
 
     // first arg or 1

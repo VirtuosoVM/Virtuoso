@@ -198,7 +198,6 @@ client.on("messageCreate", async (in_message: Message): Promise<void> => {
                 args: args,
                 cased_args: cased_args,
                 client: client,
-                Discord: Discord, // passed to maintain state // TODO: is this necessary?, only the client should have state, the module may import its own Discord module
                 commands: commands,
                 config: config,
                 booting_vms: booting_vms,

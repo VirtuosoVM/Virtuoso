@@ -1,4 +1,4 @@
-import type * as Discord from "discord.js";
+import type { Client, Message } from "discord.js";
 import type * as VMRun from "vmrun";
 
 import type * as config from "../config.json";
@@ -13,8 +13,7 @@ export type Entries<T> = {
 
 export type BotConfig = typeof config;
 export interface CommandCallData {
-    Discord: typeof Discord,
-    client: Discord.Client,
+    client: Client,
     args: string[],
     cased_args: string[],
     commands: { [key: string]: any },
@@ -26,7 +25,7 @@ export interface CommandCallData {
 
 export interface CommandCall {
     (
-        message: Discord.Message,
+        message: Message,
         data: CommandCallData
     ): void
 }
