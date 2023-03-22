@@ -16,6 +16,10 @@
                 "username": "guest os username or blank",
                 "password": "password or blank"
             },
+            "admin_creds": {
+                "username": "Administrator",
+                "password": "something-very-secure-that-isnt-this!"
+            },
             "disconnect_sound": true
         },
         "vm_list": {
@@ -27,6 +31,10 @@
                     "guest_creds": {
                         "username": "guest os username or blank",
                         "password": "password or blank"
+                    },
+                    "admin_creds": {
+                        "username": "guest os admin username or blank",
+                        "password": "something-very-very-secure-that-isnt-this!"
                     }
                 }
             }
