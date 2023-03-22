@@ -132,7 +132,13 @@ const call: CommandCall = async (message, data) => {
 
             // reaction collection block. continues if user reacts with ✅ within 15s, otherwise edits the message and returns
             try {
-                const reactions = await message.awaitReactions({ filter, time: 15000, max: 1, errors: ["time"] });
+                const reactions = await msg.awaitReactions({ filter, time: 15000, max: 1, errors: ["time"] });
+
+                if (reactions.size === 0) {
+                    // fallback to catch block
+                    throw new Error("No reactions.");
+                }
+
                 const reaction = reactions.first();
 
                 if (reaction.emoji.name !== "✅") {
