@@ -220,7 +220,7 @@ client.on("messageCreate", async (in_message: Message): Promise<void> => {
                     .setDescription("An error occurred while executing the command.")
                     .setFooter({ text: "Please contact the bot administrator if this error persists." });
                 in_message.reply({ embeds: [embed] });
-            }
+            } // TODO: DRY different types of embeds and errors for consistency into class or function
         }
     }
 });

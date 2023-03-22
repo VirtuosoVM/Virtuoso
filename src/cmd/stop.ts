@@ -88,14 +88,6 @@ const call: CommandCall = async (in_message, data) => {
 
     console.log(`Stopping VM ${vm_id}...`);
 
-    embed
-        .setColor(0xFFFF00)
-        .setTitle(":yellow_circle: Stopping VM")
-        .setDescription(`VM ${vm_id} is stopping...`)
-        .setTimestamp();
-
-    await out_message.edit({ embeds: [embed] });
-
     // set the vmrun options if overridden in the config
     let VMRun_mod = VMRun;
 
@@ -160,28 +152,39 @@ const call: CommandCall = async (in_message, data) => {
         }
     }
 
+    console.log(`Doing stop for VM ${vm_id}...`);
+
+    embed
+        .setColor(0xFFFF00)
+        .setTitle(":yellow_circle: Stopping VM")
+        .setDescription(`VM ${vm_id} is stopping...`)
+        .setFooter(null)
+        .setTimestamp();
+
+    await out_message.edit({ embeds: [embed] });
+
     // stop the VM and update the status message
     // uses raw vmrun rather than poweroff/shutdown methods to easily allow for soft/hard stop choice
     VMRun_mod.vmrun("stop", [vmx_path, stop_type]).then(() => {
         console.log(`VM ${vm_id} stopped.`);
 
-        const stopped_embed = new Discord.EmbedBuilder()
+        embed
             .setColor(0x00FF00)
             .setTitle(":green_circle: VM Stopped")
             .setDescription(`VM ${vm_id} has been stopped.`)
             .setTimestamp();
 
-        out_message.edit({ embeds: [stopped_embed] });
+        out_message.edit({ embeds: [embed] });
     }).catch((err) => {
         console.error(`Error stopping VM ${vm_id}: ${err}`);
 
-        const error_embed = new Discord.EmbedBuilder()
+        embed
             .setColor(0xFF0000)
             .setTitle(":red_circle: Error Stopping VM")
             .setDescription(`An error occurred while stopping VM ${vm_id}. Please consult the bot administrator.`)
             .setTimestamp();
 
-        out_message.edit({ embeds: [error_embed] });
+        out_message.edit({ embeds: [embed] });
     });
 };
 
