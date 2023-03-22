@@ -37,6 +37,7 @@ const call: CommandCall = async (message, data) => {
         return;
     }
 
+    embed.setColor(0x0000FF);
     embed.setTitle("Available VMs");
     embed.setDescription(null);
 
