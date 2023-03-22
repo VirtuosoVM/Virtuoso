@@ -42,8 +42,12 @@ const call: CommandCall = async (message, data) => {
     const entries = Object.entries(config.vmware.vm_list) as Entries<typeof config.vmware.vm_list>;
     const page_count = Math.ceil(entries.length / FIELD_LIMIT);
 
+    // use proper pluralisation
+    const txt_are_is = entries.length === 1 ? "is" : "are";
+    const txt_pages_page = page_count === 1 ? "page" : "pages";
+
     if (page > page_count) {
-        message.reply(`Invalid page number. There are only ${page_count} pages.`);
+        message.reply(`Invalid page number. There ${txt_are_is} only ${page_count} ${txt_pages_page}.`);
         return;
     }
 
