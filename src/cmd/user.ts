@@ -11,7 +11,7 @@ const call: CommandCall = (in_message, data) => {
     const user = args[0] ? client.users.cache.get(helper_functions.resolve_user(args[0])) : in_message.author;
 
     if (!user) {
-        in_message.reply("Invalid user. Make sure you are mentioning a user or using a valid user ID.");
+        in_message.reply("Invalid user. Make sure you are mentioning a user or using a valid user ID, and that the user is in the same server as the bot.");
         return;
     }
 
