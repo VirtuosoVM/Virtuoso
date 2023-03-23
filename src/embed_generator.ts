@@ -192,7 +192,7 @@ export class PagedListEmbed extends BaseEmbed {
      * @throws Error if page_field_limit is less than 1.
      * @throws Error if page_field_limit is not an integer.
      */
-    setPageFieldLimit(page_field_limit: Int) {
+    setPageFieldLimit(page_field_limit: number) {
         if (page_field_limit < 1) {
             throw new Error("Page field limit cannot be less than 1.");
         }
@@ -205,7 +205,7 @@ export class PagedListEmbed extends BaseEmbed {
             throw new Error(`Page field limit cannot exceed ${MAX_FIELDS} fields.`);
         }
 
-        this.#page_field_limit = page_field_limit;
+        this.#page_field_limit = page_field_limit as Int;
 
         return this;
     }
@@ -221,7 +221,7 @@ export class PagedListEmbed extends BaseEmbed {
      * @throws Error if known_field_count is less than 0.
      * @throws Error if known_field_count is not an integer.
      */
-    setKnownFieldCount(known_field_count: Int) {
+    setKnownFieldCount(known_field_count: number) {
         if (known_field_count < 0) {
             throw new Error("Known field count cannot be negative.");
         }
@@ -230,7 +230,7 @@ export class PagedListEmbed extends BaseEmbed {
             throw new Error("Known field count must be an integer.");
         }
 
-        this.#known_field_count = known_field_count;
+        this.#known_field_count = known_field_count as Int;
         return this;
     }
 
@@ -246,7 +246,7 @@ export class PagedListEmbed extends BaseEmbed {
      * @throws Error if current_page is not an integer.
      * @throws TooHighPageIndexError if current_page is greater than the number of pages.
      */
-    setCurrentPage(current_page: Int) {
+    setCurrentPage(current_page: number) {
         if (current_page < 0) {
             throw new Error("Page number cannot be negative.");
         }
@@ -263,7 +263,7 @@ export class PagedListEmbed extends BaseEmbed {
             }
         }
 
-        this.#current_page = current_page;
+        this.#current_page = current_page as Int;
         return this;
     }
 
