@@ -13,6 +13,7 @@ const client = new Discord.Client({
 });
 
 import * as config from "../config.json";
+import { version } from "../package.json";
 
 import type { Message } from "discord.js";
 import { RateLimiter } from "discord.js-rate-limiter";
@@ -283,6 +284,7 @@ client.on("messageCreate", async (in_message: Message): Promise<void> => {
                 users,
                 VMRun, // passed to maintain state
                 helper_functions: helper_funcs, // passed to maintain state
+                version,
             };
 
             const call: CommandCall = (m, d) => { // wrap in function to enforce type checking in IDE

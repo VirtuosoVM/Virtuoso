@@ -23,6 +23,7 @@ export interface CommandCallData {
     users: { [key: string]: string[] },
     VMRun: typeof VMRun,
     helper_functions: typeof helper_funcs,
+    version: string,
 }
 
 export interface CommandCall {
