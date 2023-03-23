@@ -137,6 +137,8 @@ const call: CommandCall = async (in_message, data) => {
 
         out_message.edit({ embeds: [embed] });
     });
+
+    // TODO: make it clear that this is only the BIOS, not the OS and check for vmware tools in each command that needs it
 };
 
 module.exports = call;

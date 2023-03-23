@@ -148,6 +148,7 @@ const users = {};
 
 // TODO: disable commands for some roles
 // TODO: move role management to its own config section
+// TODO: support hostnames and passwords for server
 
 // add every user
 const user_entries = Object.entries(auth_user_map) as Entries<typeof auth_user_map>;
