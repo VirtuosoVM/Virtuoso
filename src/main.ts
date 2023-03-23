@@ -4,10 +4,10 @@ import * as Discord from "discord.js";
 const client = new Discord.Client({
     partials: [Discord.Partials.Channel], intents: [
         Discord.GatewayIntentBits.MessageContent,
-        Discord.GatewayIntentBits.Guilds, 
-        Discord.GatewayIntentBits.GuildMembers, 
-        Discord.GatewayIntentBits.GuildMessages, 
-        Discord.GatewayIntentBits.GuildMessageReactions, 
+        Discord.GatewayIntentBits.Guilds,
+        Discord.GatewayIntentBits.GuildMembers,
+        Discord.GatewayIntentBits.GuildMessages,
+        Discord.GatewayIntentBits.GuildMessageReactions,
         Discord.GatewayIntentBits.DirectMessages
     ]
 });
@@ -26,13 +26,15 @@ import * as pmx from "tx2";
 
 import * as fs from "fs";
 
+import type { Entries } from "./types";
+
 import * as helper_funcs from "./helper_funcs";
 const { update_vmrun_state, edit_vmrun_opts } = helper_funcs;
 
 import * as embeds from "./embed_generator";
 
 
-console.log(" --- Validating basic config... --- ");
+console.log(" --- Validating basic config... --- \n");
 
 // must have discord config (fields not checked here)
 if (!config["discord"]) {
@@ -41,6 +43,8 @@ if (!config["discord"]) {
     process.exit(1);
 }
 
+console.log("Key discord exists.");
+
 // must have vmware config (fields not checked here)
 if (!config["vmware"]) {
     console.error("FATAL: No vmware config specified. Aborting...");
@@ -48,9 +52,13 @@ if (!config["vmware"]) {
     process.exit(1);
 }
 
-console.log(" === Config validated basically. === \n");
+console.log("Key vmware exists.");
 
-console.log(" --- Initialising VMRun options... --- ");
+console.log("\n === Config validated basically. === \n");
+
+
+
+console.log(" --- Initialising VMRun options... --- \n");
 
 
 const vmrun_options = {};
@@ -64,6 +72,9 @@ if (!config.vmware["host_type"]) {
     vmrun_options["hostType"] = config.vmware.host_type;
 }
 
+console.log("Set host type.");
+// TODO: FARFETCHED IDEA: accept different hosts for each vm from different servers all converging into 1 bot
+
 // optional vmrun path
 if (config.vmware["vmrun_path"]) {
     let vr_path = config.vmware.vmrun_path;
@@ -76,6 +87,10 @@ if (config.vmware["vmrun_path"]) {
     vmrun_options["vmrunPath"] = vr_path;
 }
 
+// not validating path exists so the user can add additional commands from their terminal to the path if needed
+
+console.log("Set vmrun path.");
+
 if (config.vmware["default_options"]) {
     edit_vmrun_opts(config.vmware.default_options, vmrun_options);
 }
@@ -83,13 +98,15 @@ if (config.vmware["default_options"]) {
 VMRun.setOptions(vmrun_options);
 update_vmrun_state(VMRun);
 
-console.log(" === VMRun options initialised. === \n");
+console.log("Set default options.");
 
+console.log("\n === VMRun options initialised. === \n");
+
+
+
+console.log(" --- Initialising commands... --- \n");
 
 const commands = {};
-
-console.log(" --- Initialising commands... --- ");
-
 const disabled_commands = config.commands?.disabled ?? [];
 
 const cmd_dir = fs.readdirSync("./dist/src/cmd/");
@@ -109,7 +126,60 @@ for (const filename of cmd_dir) {
     }
 }
 
-console.log(" === All commands loaded. === \n");
+console.log("\n === All commands loaded. === \n");
+
+
+
+console.log(" --- Initialising user groups... --- \n");
+
+const auth_user_map = config.discord["authorised_user_ids"] ?? {} as { [key: string]: string[] };
+const default_roles = config.vmware["default_options"]?.credentials ?? [] as string[];
+
+const known_role_names = Object.keys(default_roles);
+
+if (!known_role_names.includes("default")) {
+    console.error("FATAL: No default role specified in config. Aborting...");
+    //pmx.issue(new Error("FATAL: No default role specified in config. Aborting..."));
+    process.exit(1);
+}
+
+const users = {};
+
+// add every user
+const user_entries = Object.entries(auth_user_map) as Entries<typeof auth_user_map>;
+for (const [user_id, user_roles] of user_entries) {
+    if (user_id in users) {
+        console.error(`FATAL: User ${user_id} is already loaded. Check for conflicting user ID. Aborting...`);
+        //pmx.issue(new Error(`FATAL: User ${user_id} is already loaded. Check for conflicting user ID. Aborting...`));
+        process.exit(1);
+    }
+
+    // add only the default role, the rest will be verified next
+    users[user_id] = [ "default" ];
+    console.log(`- User ${user_id} authorised.`)
+
+    // check every role is valid
+    for (const role of user_roles) {
+        // check the role exists
+        if (!known_role_names.includes(role)) {
+            console.error(`FATAL: Unknown role ${role} specified for user ${user_id}. Aborting...`);
+            //pmx.issue(new Error(`FATAL: Unknown role ${role} specified for user ${user_id}. Aborting...`));
+            process.exit(1);
+        }
+
+        // check the role is not default
+        if (role === "default") {
+            console.warn(`WARNING: User ${user_id} has default role specified. This is redundant and should be removed.`);
+            continue;
+        }
+
+        console.log(`\t> Granted ${role} to user ${user_id}.`);
+    }
+}
+
+console.log("\n === All user groups loaded. === \n");
+
+
 
 function update_activity(): void {
     client.user.setActivity("virtual machines", { type: Discord.ActivityType.Playing });
@@ -159,12 +229,12 @@ client.on("messageCreate", async (in_message: Message): Promise<void> => {
     }
 
     if (in_message.content.toLowerCase().startsWith(config.discord.prefix) || in_message.content.toLowerCase().startsWith(client.user.toString())) {
-        if (in_message.author.id !== config.discord.owner_id && !config.discord.authorised_admin_user_ids.includes(in_message.author.id) && !config.discord.authorised_guest_user_ids.includes(in_message.author.id)) {
+        if (!Object.keys(config.discord.authorised_user_ids).includes(in_message.author.id)) {
             const embed = new embeds.FatalEmbed()
                 .setTitle("Unauthorised")
                 .setDescription("You are not authorised to use this bot.")
                 .setFooter({ text: "This bot is limited to authorised users only." });
-                
+
             in_message.reply({ embeds: [embed] });
             return;
         }

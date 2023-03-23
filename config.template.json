@@ -3,27 +3,36 @@
         "token": "your bot's token",
         "prefix": "v!",
         "owner_id": "your discord ID",
-        "authorised_admin_user_ids": [
-            "discord IDs that can perform actions with the admin credentials, the owner ID is automatically added to this list"
-        ],
-        "authorised_guest_user_ids": [
-            "anyone else's discord ID who can use the bot"
-        ]
+        "authorised_user_ids": {
+            "a user's id": [
+                "the groups they're in",
+                "every user is in default automatically"
+            ],
+            "example": [
+                "admin"
+            ]
+        }
     },
     "vmware": {
         "vmrun_path": "path to the vmrun executable",
         "host_type": "ws",
         "default_options": {
             "vm_password": "password to decrypt the vm or blank",
-            "guest_creds": {
-                "username": "guest os username or blank",
-                "password": "password or blank"
-            },
-            "admin_creds": {
-                "username": "Administrator",
-                "password": "something-very-secure-that-isnt-this!"
-            },
-            "disconnect_sound": true
+            "disconnect_sound": true,
+            "credentials": {
+                "default": {
+                    "username": "default group guest os username",
+                    "password": "default group guest os password"
+                },
+                "admin": {
+                    "username": "admin group guest os username",
+                    "password": "super secure admin group guest os password!"
+                },
+                "another group": {
+                    "username": "this group's guest os username",
+                    "password": "this group's guest os password"
+                }
+            }
         },
         "vm_list": {
             "example": {
@@ -31,13 +40,15 @@
                 "description": "Description of the VM",
                 "vmx": "path to the vmx file",
                 "options_override": {
-                    "guest_creds": {
-                        "username": "guest os username or blank",
-                        "password": "password or blank"
-                    },
-                    "admin_creds": {
-                        "username": "guest os admin username or blank",
-                        "password": "something-very-very-secure-that-isnt-this!"
+                    "credentials": {
+                        "admin": {
+                            "username": "admin group guest os username override",
+                            "password": "super secure admin group guest os password override!"
+                        },
+                        "new user group": {
+                            "username": "you cannot define a new group here!",
+                            "password": "only groups defined in default_options can be applied to users, so this will be a useless credential"
+                        }
                     }
                 }
             }

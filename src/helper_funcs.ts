@@ -28,18 +28,18 @@ export const update_vmrun_state = (vmrun: typeof vmr_type) => {
  * @throws {Error} if the vmx path does not exist on the filesystem
 */
 export const edit_vmrun_opts = (input_opts: { [key: string]: any }, vmrun_opts: { [key: string]: any }) => {
-    // optional fields for vm_password and guest_creds
+    // optional fields for vm_password and default credentials
     if (input_opts["vm_password"]) {
         vmrun_opts["vmPassword"] = config.vmware.default_options.vm_password;
     }
 
-    if (input_opts["guest_creds"]) {
-        if (input_opts.guest_creds["username"]) {
-            vmrun_opts["guestUsername"] = input_opts.guest_creds.username;
+    if (input_opts["credentials"]["default"]) {
+        if (input_opts.credentials.default["username"]) {
+            vmrun_opts["guestUsername"] = input_opts.credentials.default.username;
         }
 
-        if (input_opts.guest_creds["password"]) {
-            vmrun_opts["guestPassword"] = input_opts.guest_creds.password;
+        if (input_opts.credentials.default["password"]) {
+            vmrun_opts["guestPassword"] = input_opts.credentials.default.password;
         }
     }
 };
