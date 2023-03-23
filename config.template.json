@@ -11,6 +11,13 @@
             "example": [
                 "admin"
             ]
+        },
+        "rcon": {
+            "enable": false,
+            "rcon_user_ids": [
+                "user ids that can use rcon commands",
+                "this is a dangerous permission to grant! they can use it to escalate permissions on both the host and guest os"
+            ]
         }
     },
     "vmware": {
