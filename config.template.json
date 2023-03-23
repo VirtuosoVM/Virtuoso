@@ -65,6 +65,7 @@
     "commands": {
         "disabled": [
             "command to disable"
-        ]
+        ],
+        "allow_direct_help_download": true
     }
 }
