@@ -317,6 +317,8 @@ pmx.action("test-bot", async function (reply: Function): Promise<void> {
     });
 });
 
+// TODO: config reload action
+
 
 
 function exitHandler(options, exitCode) {
