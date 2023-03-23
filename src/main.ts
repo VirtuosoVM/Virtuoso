@@ -145,6 +145,9 @@ if (!known_role_names.includes("default")) {
 
 const users = {};
 
+// TODO: disable commands for some roles
+// TODO: move role management to its own config section
+
 // add every user
 const user_entries = Object.entries(auth_user_map) as Entries<typeof auth_user_map>;
 for (const [user_id, user_roles] of user_entries) {
