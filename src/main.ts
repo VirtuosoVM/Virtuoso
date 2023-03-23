@@ -173,6 +173,7 @@ for (const [user_id, user_roles] of user_entries) {
             continue;
         }
 
+        users[user_id].push(role);
         console.log(`\t> Granted ${role} to user ${user_id}.`);
     }
 }
