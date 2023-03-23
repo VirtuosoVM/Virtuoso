@@ -21,7 +21,7 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
-    let embed = new embeds.QueryPendingEmbed()
+    const embed = new embeds.QueryPendingEmbed()
         .setTitle("Querying power states...")
         .setDescription("This may take some time...");
 
@@ -38,7 +38,10 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
-    embed = new embeds.PagedListEmbed()
+    const entries = Object.entries(config.vmware.vm_list) as Entries<typeof config.vmware.vm_list>;
+
+    // need a new embed or type checking will complain
+    const list_embed = new embeds.PagedListEmbed()
         .setTitle("Available VMs")
         // info with proper pluralisation. has some ugly inline code but it keeps it compact.
         .setDescription(`There ${Object.keys(config.vmware.vm_list).length === 1 ? "is" : "are"} ${Object.keys(config.vmware.vm_list).length} VM${Object.keys(config.vmware.vm_list).length === 1 ? "" : "s"} in total.
@@ -48,29 +51,25 @@ const call: CommandCall = async (in_message, data) => {
         There ${shutting_down_vms.length === 1 ? "is" : "are"} ${shutting_down_vms.length} VM${shutting_down_vms.length === 1 ? "" : "s"} shutting down.
         There ${Object.keys(config.vmware.vm_list).length - powered_vms.length === 1 ? "is" : "are"} ${Object.keys(config.vmware.vm_list).length - powered_vms.length} VM${Object.keys(config.vmware.vm_list).length - powered_vms.length === 1 ? "" : "s"} unpowered.
 
-        Key: ${embeds.Icons.POWERED} = Powered, ${embeds.Icons.BOOTING} = Booting, ${embeds.Icons.SHUTTING_DOWN} = Shutting down, ${embeds.Icons.UNPOWERED} = Unpowered`);
+        Key: ${embeds.Icons.POWERED} = Powered, ${embeds.Icons.BOOTING} = Booting, ${embeds.Icons.SHUTTING_DOWN} = Shutting down, ${embeds.Icons.UNPOWERED} = Unpowered`)
+        .setPaginationType(embeds.PaginationType.NO_REACTIONS)
+        .setPageFieldLimit(FIELD_LIMIT)
+        .setKnownFieldCount(Object.keys(config.vmware.vm_list).length)
 
-    // TODO: move this pagniation to paged list embed class
+    try {
+        list_embed.setCurrentPage(page - 1);
+    } catch (err) {
+        // only catch TooHighPageIndexError, rethrow anything else
+        if (err instanceof embeds.TooHighPageIndexError) {
+            out_message.delete();
+            in_message.reply(err.message);
+            return;
+        }
 
-    const entries = Object.entries(config.vmware.vm_list) as Entries<typeof config.vmware.vm_list>;
-    const page_count = Math.ceil(entries.length / FIELD_LIMIT);
-
-    // use proper pluralisation
-    const txt_are_is = entries.length === 1 ? "is" : "are";
-    const txt_pages_page = page_count === 1 ? "page" : "pages";
-
-    if (page > page_count) {
-        out_message.delete();
-        in_message.reply(`Invalid page number. There ${txt_are_is} only ${page_count} ${txt_pages_page}.`);
-        return;
+        throw err;
     }
 
-    embed.setFooter({ text: `Page: ${page}/${page_count}` });
-
-    // slice the entries array to get the entries for the current page
-    const entries_page = entries.slice((page - 1) * FIELD_LIMIT, page * FIELD_LIMIT);
-
-    for (const [vm_id, vm] of entries_page) {
+    for (const [vm_id, vm] of entries) {
         // auto truncate the description if it's too long
         const name = vm.name;
         const desc = vm.description.length <= MAX_VALUE_LENGTH ? vm.description : vm.description.slice(0, MAX_VALUE_LENGTH - 3) + "...";
@@ -92,10 +91,23 @@ const call: CommandCall = async (in_message, data) => {
         // auto truncate the title if it's too long
         title = title.length <= MAX_TITLE_LENGTH ? title : title.slice(0, MAX_TITLE_LENGTH - 3) + "...";
 
-        embed.addFields([{ name: title, value: desc }]);
+        list_embed.addFields([{ name: title, value: desc }]);
     }
 
-    out_message.edit({ embeds: [embed] });
+    try {
+        list_embed.finishedAddingFields();
+    } catch (err) {
+        // only catch TooHighPageIndexError, rethrow anything else
+        if (err instanceof embeds.TooHighPageIndexError) {
+            out_message.delete();
+            in_message.reply(err.message);
+            return;
+        }
+
+        throw err;
+    }
+
+    out_message.edit({ embeds: [list_embed] });
 };
 
 module.exports = call;
