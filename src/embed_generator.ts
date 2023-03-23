@@ -1,3 +1,5 @@
+import { Int } from "./types";
+
 import { EmbedBuilder } from "discord.js";
 
 // TODO: use as error logger
@@ -142,12 +144,12 @@ export class TooHighPageIndexError extends Error {
 
 export class PagedListEmbed extends BaseEmbed {
     #pagination_type = PaginationType.NONE;
-    #page_field_limit = MAX_FIELDS;
+    #page_field_limit = MAX_FIELDS as Int;
 
     #added_fields = [];
-    #current_page = 0;
+    #current_page = 0 as Int;
 
-    #known_field_count;
+    #known_field_count: Int;
 
     constructor() {
         super();
@@ -161,6 +163,8 @@ export class PagedListEmbed extends BaseEmbed {
     #calculateNumPages(field_count: number) {
         return Math.ceil(field_count / this.#page_field_limit);
     }
+
+    // TODO: implement reaction page turning
 
     // functions shown in the order they should be called in
 
@@ -188,7 +192,7 @@ export class PagedListEmbed extends BaseEmbed {
      * @throws Error if page_field_limit is less than 1.
      * @throws Error if page_field_limit is not an integer.
      */
-    setPageFieldLimit(page_field_limit: number) {
+    setPageFieldLimit(page_field_limit: Int) {
         if (page_field_limit < 1) {
             throw new Error("Page field limit cannot be less than 1.");
         }
@@ -215,10 +219,15 @@ export class PagedListEmbed extends BaseEmbed {
      * @param known_field_count The number of fields you guarantee will be added to the embed.
      * @returns this
      * @throws Error if known_field_count is less than 0.
+     * @throws Error if known_field_count is not an integer.
      */
-    setKnownFieldCount(known_field_count: number) {
+    setKnownFieldCount(known_field_count: Int) {
         if (known_field_count < 0) {
             throw new Error("Known field count cannot be negative.");
+        }
+
+        if (!Number.isInteger(known_field_count)) {
+            throw new Error("Known field count must be an integer.");
         }
 
         this.#known_field_count = known_field_count;
@@ -234,11 +243,16 @@ export class PagedListEmbed extends BaseEmbed {
      * @param current_page The current page number.
      * @returns this
      * @throws Error if current_page is less than 0.
+     * @throws Error if current_page is not an integer.
      * @throws TooHighPageIndexError if current_page is greater than the number of pages.
      */
-    setCurrentPage(current_page: number) {
+    setCurrentPage(current_page: Int) {
         if (current_page < 0) {
             throw new Error("Page number cannot be negative.");
+        }
+
+        if (!Number.isInteger(current_page)) {
+            throw new Error("Page number must be an integer.");
         }
 
         if (this.#known_field_count) {
@@ -329,6 +343,7 @@ export class ConfirmationEmbed extends BaseEmbed {
             .setTitleIcon(Icons.CONFIRMATION)
             .setAuthor({ name: "Confirmation" });
     }
+    // TODO: implement behaviour
 }
 
 export class ArgumentIssueEmbed extends BaseEmbed {
@@ -340,6 +355,7 @@ export class ArgumentIssueEmbed extends BaseEmbed {
             .setTitleIcon(Icons.ARGUMENT_ISSUE)
             .setAuthor({ name: "Argument Issue" });
     }
+    // TODO: strikethrough correction ui
 }
 
 
