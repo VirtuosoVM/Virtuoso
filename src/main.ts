@@ -269,14 +269,15 @@ client.on("messageCreate", async (in_message: Message): Promise<void> => {
             console.log(` > ${cmd} with args ${cased_args} from ${in_message.author.tag} (${in_message.author.id}) in ${in_message.guild.name} (${in_message.guild.id})`)
 
             const data = {
-                args: args,
-                cased_args: cased_args,
-                client: client,
-                commands: commands,
-                config: config,
-                booting_vms: booting_vms,
-                shutting_down_vms: shutting_down_vms,
-                VMRun: VMRun, // passed to maintain state
+                args,
+                cased_args,
+                client,
+                commands,
+                config,
+                booting_vms,
+                shutting_down_vms,
+                users,
+                VMRun, // passed to maintain state
                 helper_functions: helper_funcs, // passed to maintain state
             };
 

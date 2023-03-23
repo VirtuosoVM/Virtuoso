@@ -161,3 +161,24 @@ export const query_vm_path_power_state = async (vmx_path: string): Promise<boole
     const running_vms = await VMRun.list();
     return running_vms.includes(vmx_path);
 };
+
+
+/**
+ * Resolves an ID or mention of a user to a user ID
+ * 
+ * @param user_reference An ID or mention of a user
+ * @returns The user ID
+ */
+export const resolve_user = (user_reference: string) => {
+    if (user_reference.startsWith("<@") && user_reference.endsWith(">")) {
+        user_reference = user_reference.slice(2, -1);
+
+        if (user_reference.startsWith("!")) {
+            user_reference = user_reference.slice(1);
+        }
+
+        return user_reference;
+    }
+
+    return user_reference;
+};
