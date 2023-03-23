@@ -21,9 +21,7 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
-    const embed = new embeds.QueryPendingEmbed()
-        .setTitle("Querying power states...")
-        .setDescription("This may take some time...");
+    const embed = new embeds.QueryingPowerStateEmbed(null);
 
     const out_message = await in_message.reply({ embeds: [embed] });
 

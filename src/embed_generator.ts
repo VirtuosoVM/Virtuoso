@@ -343,6 +343,25 @@ export class ArgumentIssueEmbed extends BaseEmbed {
 }
 
 
+
+
+export class QueryingPowerStateEmbed extends QueryPendingEmbed {
+    /**
+     * Generic embed based on QueryPendingEmbed for querying the power state of a VM.
+     * 
+     * @param vm_id The ID of the VM. Set to null to switch to "querying list of power states" mode.
+     */
+    constructor(vm_id: string | null) {
+        super();
+
+        const state_suffix = vm_id === null ? "s" : ` of VM ${vm_id}`;
+
+        this
+            .setTitle(`Querying power state${state_suffix}...`)
+            .setDescription("This may take a few seconds...")
+            .setTimestamp();
+    }
+}
 export class ScreenshotPendingEmbed extends ActionPendingEmbed {
     constructor(vm_id: string) {
         super();
