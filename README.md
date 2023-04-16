@@ -1,5 +1,11 @@
 # Virtuoso
 
+> A virtual machine host for Discord powered by VMware.
+
+<p align="center"><img width=200 alt="virtuoso logo" src="./assets/logo.png" /></p>
+
+---
+
 todo: make this readme better
 
 1. install vmware (player is free)
