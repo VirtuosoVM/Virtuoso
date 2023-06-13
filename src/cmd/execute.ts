@@ -33,6 +33,30 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
+    const mode_txt = args[1];
+    const opts = {};
+
+    if (mode_txt === "$") {
+        opts["noWait"] = false;
+        opts["activeWindow"] = false;
+        opts["interactive"] = false;
+    } else if (mode_txt === ">") {
+        opts["noWait"] = true;
+        opts["activeWindow"] = true;
+        opts["interactive"] = true;
+    } else {
+        in_message.reply("Second argument must be either `$` (shell mode) or `>` (GUI mode).");
+        return;
+    }
+
+    const program = cased_args[2];
+    const program_args = cased_args.slice(3);
+
+    if (!program) {
+        in_message.reply("Please specify a command.");
+        return;
+    }
+
     if (booting_vms.includes(vm_id)) {
         in_message.reply("VM is still booting.");
         return;
@@ -96,30 +120,6 @@ const call: CommandCall = async (in_message, data) => {
         VMRun_mod = VMRun_mod.withModifiedOptions(overriden_vmrun_opts);
     }
     
-
-    const mode_txt = args[1];
-    const opts = {};
-
-    if (mode_txt === "$") {
-        opts["noWait"] = false;
-        opts["activeWindow"] = false;
-        opts["interactive"] = false;
-    } else if (mode_txt === ">") {
-        opts["noWait"] = true;
-        opts["activeWindow"] = true;
-        opts["interactive"] = true;
-    } else {
-        in_message.reply("Second argument must be either `$` (shell mode) or `>` (GUI mode).");
-        return;
-    }
-
-    const program = cased_args[2];
-    const program_args = cased_args.slice(3);
-
-    if (!program) {
-        in_message.reply("Please specify a command.");
-        return;
-    }
 
     embed = new embeds.ActionPendingEmbed()
         .setTitle("Executing command")
