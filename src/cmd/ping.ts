@@ -16,4 +16,4 @@ const call: CommandCall = (in_message, data) => {
     });
 };
 
-module.exports = call;
+export default call;

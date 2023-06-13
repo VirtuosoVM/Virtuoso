@@ -31,4 +31,4 @@ const call: CommandCall = (in_message, data) => {
     in_message.reply({ embeds: [embed] });
 };
 
-module.exports = call;
+export default call;

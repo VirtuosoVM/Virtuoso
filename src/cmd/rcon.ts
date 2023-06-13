@@ -28,6 +28,8 @@ const call: CommandCall = (in_message, data) => {
         in_message.reply("Please specify a subcommand. [reload | reconfig | stop | grant]");
         return;
     }
+
+    // TODO: implement
 };
 
-module.exports = call;
+export default call;

@@ -19,6 +19,13 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
+    // check if the vm id exists in the config, ignoring __proto__ and other properties
+    // (anti prototype pollution)
+    if (!Object.prototype.hasOwnProperty.call(config.vmware.vm_list, vm_id)) {
+        in_message.reply("Invalid VM ID.");
+        return;
+    }
+
     const vm = config.vmware.vm_list[vm_id];
 
     if (!vm) {
@@ -192,4 +199,4 @@ const call: CommandCall = async (in_message, data) => {
     });
 };
 
-module.exports = call;
+export default call;

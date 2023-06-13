@@ -108,4 +108,4 @@ const call: CommandCall = async (in_message, data) => {
     out_message.edit({ embeds: [list_embed] });
 };
 
-module.exports = call;
+export default call;

@@ -15,7 +15,7 @@ const call: CommandCall = (in_message, data) => {
         return;
     }
 
-    const user_roles = users[user.id];
+    const user_roles = users.get(user.id);
 
     const embed = new embeds.InfoEmbed()
         .setTitle(`User Info for ${user.username}#${user.discriminator}`)
@@ -41,4 +41,4 @@ const call: CommandCall = (in_message, data) => {
     in_message.reply({ embeds: [embed] });
 };
 
-module.exports = call;
+export default call;

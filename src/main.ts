@@ -13,9 +13,11 @@ const client = new Discord.Client({
 });
 
 import * as config from "../config.json";
+Object.freeze(config); // make config immutable (prevents accidental modification and vulns like prototype pollution)
+
 import { version } from "../package.json";
 
-import type { Message } from "discord.js";
+import { Message } from "discord.js";
 import { RateLimiter } from "discord.js-rate-limiter";
 import { CommandCall } from "./types";
 const rate_limiter = new RateLimiter(1, 2000); // 1 command per 2 seconds
@@ -107,7 +109,7 @@ console.log("\n === VMRun options initialised. === \n");
 
 console.log(" --- Initialising commands... --- \n");
 
-const commands = {};
+const commands: Map<string, CommandCall> = new Map();
 const disabled_commands = config.commands?.disabled ?? [];
 
 const cmd_dir = fs.readdirSync("./dist/src/cmd/");
@@ -117,13 +119,31 @@ for (const filename of cmd_dir) {
     if (filename.endsWith(".js")) {
         const cmd_name = filename.replace(/.js$/, "");
         console.log(`Loading command: ${cmd_name}`);
-        if (cmd_name in commands) {
+        if (commands.has(cmd_name)) {
             console.error(`FATAL: Command ${cmd_name} is already loaded. Check for conflicting file name. Aborting...`);
             //pmx.issue(new Error(`FATAL: Command ${name} is already loaded. Check for conflicting file name. Aborting...`));
             process.exit(1);
         }
 
-        commands[filename.replace(/.js$/, "")] = require(`./cmd/${filename}`); // load command function into object
+        const module = require(`./cmd/${filename}`);
+
+        // check default export exists
+        const def = module.default;
+        if (!def) {
+            console.error(`FATAL: Command ${cmd_name} has no default export. Skipping...`);
+            //pmx.issue(new Error(`FATAL: Command ${name} has no default export. Skipping...`));
+            continue;
+        }
+
+        // check default export is a function
+        if (typeof def !== "function") {
+            console.error(`FATAL: Command ${cmd_name} has a default export that is not a function. Skipping...`);
+            //pmx.issue(new Error(`FATAL: Command ${name} has a default export that is not a function. Skipping...`));
+            continue;
+        }
+        
+        const cmd_call = def as CommandCall;
+        commands.set(cmd_name, cmd_call);
     }
 }
 
@@ -144,7 +164,7 @@ if (!known_role_names.includes("default")) {
     process.exit(1);
 }
 
-const users = {};
+const users: Map<string, string[]> = new Map();
 
 // TODO: disable commands for some roles
 // TODO: move role management to its own config section
@@ -153,14 +173,14 @@ const users = {};
 // add every user
 const user_entries = Object.entries(auth_user_map) as Entries<typeof auth_user_map>;
 for (const [user_id, user_roles] of user_entries) {
-    if (user_id in users) {
+    if (users.has(user_id)) {
         console.error(`FATAL: User ${user_id} is already loaded. Check for conflicting user ID. Aborting...`);
         //pmx.issue(new Error(`FATAL: User ${user_id} is already loaded. Check for conflicting user ID. Aborting...`));
         process.exit(1);
     }
 
     // add only the default role, the rest will be verified next
-    users[user_id] = [ "default" ];
+    users.set(user_id, ["default"]);
     console.log(`- User ${user_id} authorised.`)
 
     // check every role is valid
@@ -178,7 +198,8 @@ for (const [user_id, user_roles] of user_entries) {
             continue;
         }
 
-        users[user_id].push(role);
+        // add the role
+        users.get(user_id).push(role);
         console.log(`\t> Granted ${role} to user ${user_id}.`);
     }
 }
@@ -234,7 +255,9 @@ client.on("messageCreate", async (in_message: Message): Promise<void> => {
         return;
     }
 
+    // check for prefix or mention
     if (in_message.content.toLowerCase().startsWith(config.discord.prefix) || in_message.content.toLowerCase().startsWith(client.user.toString())) {
+        // check for authorisation
         if (!Object.keys(config.discord.authorised_user_ids).includes(in_message.author.id)) {
             const embed = new embeds.FatalEmbed()
                 .setTitle("Unauthorised")
@@ -271,14 +294,13 @@ client.on("messageCreate", async (in_message: Message): Promise<void> => {
         const args = in_message.content.toLowerCase().trimStart().trimStart().split(" ").slice(1); // extract arguments
         const cased_args = in_message.content.trimStart().replace(ignore_start, "").trimStart().split(" ").slice(1); // extract arguments
 
-        if (cmd in commands && !disabled_commands.includes(cmd)) {
+        if (commands.has(cmd) && !disabled_commands.includes(cmd)) {
             console.log(` > ${cmd} with args ${cased_args} from ${in_message.author.tag} (${in_message.author.id}) in ${in_message.guild.name} (${in_message.guild.id})`)
 
             const data = {
                 args,
                 cased_args,
                 client,
-                commands,
                 config,
                 booting_vms,
                 shutting_down_vms,
@@ -289,7 +311,7 @@ client.on("messageCreate", async (in_message: Message): Promise<void> => {
             };
 
             const call: CommandCall = (m, d) => { // wrap in function to enforce type checking in IDE
-                return commands[cmd](m, d);
+                commands.get(cmd)(m, d);
             };
 
             try {
@@ -301,7 +323,7 @@ client.on("messageCreate", async (in_message: Message): Promise<void> => {
                     .setDescription("An error occurred while executing the command.");
 
                 in_message.reply({ embeds: [embed] });
-            } // TODO: DRY different types of embeds and errors for consistency into class or function
+            }
             // TODO: IDEA: embed diff tool using custom dictionary. only changes embed properties that are different from existing embed to save on instances
         }
     }
