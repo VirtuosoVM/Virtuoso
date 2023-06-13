@@ -130,12 +130,38 @@ const call: CommandCall = async (in_message, data) => {
     VMRun_mod.runProgramInGuest(vmx_path, program, program_args, opts).then((result) => {
         console.log(result);
         out_message.delete();
+
+        in_message.react("✅");
+
+        if (!result) {
+            return;
+        }
+
+        if (result.stdout && result.stdout.length > 0) {
+            in_message.reply(`\`\`\`${result.stdout}\`\`\``);
+        }
+
+        if (result.stderr && result.stderr.length > 0) {
+            in_message.reply(`\`\`\`${result.stderr}\`\`\``);
+        }
     }).catch((err) => {
         console.error(err);
         out_message.delete();
+
+        in_message.react("❌");
+
+        if (!err || !err.message) {
+            in_message.reply("An unknown error occurred. Please consult the bot administrator.");
+            return;
+        }
+
+        if (err.message.startsWith("A file was not found")) {
+            in_message.reply("The specified program was not found on the guest.");
+            return;
+        }
+
+        in_message.reply("An error occurred while executing the command. Please consult the bot administrator.");
     });
-    // TODO: display result
-    // TODO: display error
     // TODO: allow command in ` `
     // TODO: check if the host needs to view the vm (for interactive mode), hopefully not but it has a temper
     // TODO: PATH variable lookup, right now you need to do the full path e.g. C:\Windows\System32\notepad.exe
