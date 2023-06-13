@@ -104,7 +104,8 @@ const call: CommandCall = async (in_message, data) => {
     let VMRun_mod = VMRun;
 
     if (vm["options_override"]) {
-        const overriden_vmrun_opts = edit_vmrun_opts(vm.options_override);
+        const overriden_vmrun_opts = {};
+        edit_vmrun_opts(vm.options_override, overriden_vmrun_opts);
         VMRun_mod = VMRun_mod.withModifiedOptions(overriden_vmrun_opts);
     }
 

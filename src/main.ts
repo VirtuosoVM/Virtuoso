@@ -64,7 +64,7 @@ console.log("\n === Config validated basically. === \n");
 console.log(" --- Initialising VMRun options... --- \n");
 
 
-let vmrun_options = {};
+const vmrun_options = {};
 
 // must have host type
 if (!config.vmware["host_type"]) {
@@ -95,7 +95,7 @@ if (config.vmware["vmrun_path"]) {
 console.log("Set vmrun path.");
 
 if (config.vmware["default_options"]) {
-    vmrun_options = edit_vmrun_opts(config.vmware.default_options);
+    edit_vmrun_opts(config.vmware.default_options, vmrun_options);
 }
 
 VMRun.setOptions(vmrun_options);
