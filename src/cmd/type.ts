@@ -17,6 +17,7 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
+    // TODO: only works with one word at a time??
     const what_to_type = cased_args.slice(1).join(" ");
 
     if (!what_to_type || what_to_type.length === 0) {
