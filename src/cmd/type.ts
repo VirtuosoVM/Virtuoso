@@ -7,7 +7,7 @@ import * as fs from "fs";
 import * as embeds from "../embed_generator";
 
 const call: CommandCall = async (in_message, data) => {
-    const { args, config, client, VMRun, helper_functions, booting_vms, shutting_down_vms } = data;
+    const { args, cased_args, config, VMRun, helper_functions, booting_vms, shutting_down_vms } = data;
     const { edit_vmrun_opts, query_vm_id_power_state } = helper_functions;
 
     const vm_id = args[0];
@@ -17,7 +17,7 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
-    const what_to_type = args.slice(1).join(" ");
+    const what_to_type = cased_args.slice(1).join(" ");
 
     if (!what_to_type || what_to_type.length === 0) {
         in_message.reply("Please specify what to type.");

@@ -49,6 +49,7 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
+    // TODO: join text in quotes to allow programs and args with spaces
     const program = cased_args[2];
     const program_args = cased_args.slice(3);
 
