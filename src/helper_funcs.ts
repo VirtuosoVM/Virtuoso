@@ -43,6 +43,8 @@ export const edit_vmrun_opts = (input_opts: { [key: string]: any }): { [key: str
             vmrun_opts["guestPassword"] = input_opts.credentials.default.password;
         }
     }
+
+    return vmrun_opts;
 };
 
 /**
