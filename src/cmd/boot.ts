@@ -101,8 +101,7 @@ const call: CommandCall = async (in_message, data) => {
     let disconnect_sound = config.vmware["default_options"]["disconnect_sound"];
 
     if (vm["options_override"]) {
-        const overriden_vmrun_opts = {};
-        edit_vmrun_opts(vm.options_override, overriden_vmrun_opts);
+        const overriden_vmrun_opts = edit_vmrun_opts(vm.options_override);
         VMRun_mod = VMRun_mod.withModifiedOptions(overriden_vmrun_opts);
 
         if (vm.options_override["disconnect_sound"]) {

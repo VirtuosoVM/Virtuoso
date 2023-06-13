@@ -22,12 +22,13 @@ export const update_vmrun_state = (vmrun: typeof vmr_type) => {
  * Parse config options into a VMRun-friendly options object
  * 
  * @param {object} input_opts - the options specified in the config
- * @param {object} vmrun_opts - the options object to edit
- * @returns {void}
+ * @returns {object} the VMRun-friendly options object
  * @throws {Error} if the vmx path is not specified in the config
  * @throws {Error} if the vmx path does not exist on the filesystem
 */
-export const edit_vmrun_opts = (input_opts: { [key: string]: any }, vmrun_opts: { [key: string]: any }) => {
+export const edit_vmrun_opts = (input_opts: { [key: string]: any }): { [key: string]: any } => {
+    const vmrun_opts = {};
+
     // optional fields for vm_password and default credentials
     if (input_opts["vm_password"]) {
         vmrun_opts["vmPassword"] = config.vmware.default_options.vm_password;
@@ -133,8 +134,7 @@ export const query_vm_id_power_state = async (vm_id: string): Promise<boolean> =
     let VMRun_mod = VMRun;
 
     if (vm["options_override"]) {
-        const overriden_vmrun_opts = {};
-        edit_vmrun_opts(vm.options_override, overriden_vmrun_opts);
+        const overriden_vmrun_opts = edit_vmrun_opts(vm.options_override);
         VMRun_mod = VMRun_mod.withModifiedOptions(overriden_vmrun_opts);
     }
 
