@@ -18,12 +18,15 @@ const call: CommandCall = async (in_message, data) => {
     }
 
     // TODO: only works with one word at a time??
-    const what_to_type = cased_args.slice(1).join(" ");
+    let what_to_type = cased_args.slice(1).join(" ");
 
     if (!what_to_type || what_to_type.length === 0) {
         in_message.reply("Please specify what to type.");
         return;
     }
+
+    // replace newlines with literal \n
+    what_to_type = what_to_type.replace(/(?:\r\n|\r|\n)/g, "\\n")
 
     // TODO: DRY this in every command
     // check if the vm id exists in the config, ignoring __proto__ and other properties
