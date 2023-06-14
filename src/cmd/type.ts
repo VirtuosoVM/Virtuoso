@@ -25,6 +25,12 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
+    const force = what_to_type.startsWith("-f ");
+
+    if (force) {
+        what_to_type = what_to_type.slice(3);
+    }
+
     // replace newlines with literal \n
     what_to_type = what_to_type.replace(/(?:\r\n|\r|\n)/g, "\\n")
 
@@ -57,7 +63,7 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
-    const embed = new embeds.QueryingPowerStateEmbed(vm_id);
+    let embed = new embeds.QueryingPowerStateEmbed(vm_id);
 
     const out_message = await in_message.reply({ embeds: [embed] });
 
@@ -158,8 +164,27 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
+    embed = new embeds.ActionPendingEmbed()
+
+    if (!force) {
+        embed.setTitle("Waiting for result...")
+            .setDescription(`Typing characters for VM ${vm_id}...
+        To type the text and ignore whether it succeeded, add the \`-f\` flag to the start of the command.`);
+    } else {
+        embed.setTitle("Typing characters...")
+            .setDescription(`Typing characters for VM ${vm_id}...`);
+    }
+
+    await out_message.edit({ embeds: [embed] });
+
     // use conductor via vmrun command execution to type the characters
-    execute_stdout_wrapper(VMRun_mod, vm, vmx_path, python_path, [conductor_caller_path, "type", what_to_type], {}).then((result) => {
+    execute_stdout_wrapper(VMRun_mod, vm, vmx_path, python_path, [conductor_caller_path, "type", what_to_type], {}, force).then((result) => {
+        if (force) {
+            out_message.delete();
+            in_message.react("🟧");
+            return;
+        }
+
         console.log(result);
 
         if (result.local.stderr && result.local.stderr.length > 0) {
@@ -196,7 +221,7 @@ const call: CommandCall = async (in_message, data) => {
             console.error(`Python or conductor caller not found in VM for VM ${vm_id}`);
             return;
         }
-        
+
         if (err.message && err.message.startsWith("Timeout waiting for file to exist")) {
             in_message.reply("The result of the command could not be loaded. The command may have still executed. Consult the bot administrator if you need the result.");
             console.error(`Timeout waiting for file to exist for VM ${vm_id}`);

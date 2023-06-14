@@ -37,7 +37,7 @@ const call: CommandCall = async (in_message, data) => {
     const mode_txt = args[1];
     const opts = {};
 
-    if (mode_txt === "$") {
+    if (mode_txt === "$" || mode_txt === ".") {
         opts["noWait"] = false;
         opts["activeWindow"] = false;
         opts["interactive"] = false;
@@ -46,7 +46,7 @@ const call: CommandCall = async (in_message, data) => {
         opts["activeWindow"] = true;
         opts["interactive"] = true;
     } else {
-        in_message.reply("Second argument must be either `$` (shell mode) or `>` (GUI mode).");
+        in_message.reply("Second argument must be either `$` (shell mode), `.` (shell mode without result), or `>` (GUI mode).");
         return;
     }
 
@@ -125,11 +125,12 @@ const call: CommandCall = async (in_message, data) => {
 
     embed = new embeds.ActionPendingEmbed()
         .setTitle("Executing command")
-        .setDescription(`Executing command \`${program}\` on VM \`${vm_id}\`.`);
+        .setDescription(`Executing command \`${program}\` on VM \`${vm_id}\`.`)
+        .setFooter({ text: `Using mode: ${mode_txt} | Available modes: $ (shell mode), . (shell mode without result), > (GUI mode).`});
     
     out_message.edit({ embeds: [embed] });
 
-    execute_stdout_wrapper(VMRun_mod, vm, vmx_path, program, program_args, opts, mode_txt === ">").then((result) => {
+    execute_stdout_wrapper(VMRun_mod, vm, vmx_path, program, program_args, opts, mode_txt === ">" || mode_txt === ".").then((result) => {
         console.log(result);
         out_message.delete();
 

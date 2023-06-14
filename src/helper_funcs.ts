@@ -9,6 +9,22 @@ let VMRun: typeof vmr_type;
 
 // TODO: replace generic error with a custom error type
 
+export const escape_arg = (arg: string, windows: boolean): string => {
+    if (windows) {
+        if (arg === undefined) arg = '';
+        arg = arg + '';
+        if (!/\s|[\\"\]]/.test(arg) && arg.length > 0 /* escape empty args as "" */) return arg;
+
+        return '"' + arg.replace(/"/g, '""') + '"';
+    } else {
+        if (arg === undefined) arg = '';
+        arg = arg + '';
+        if (!/\s|[\\"\]]/.test(arg) && arg.length > 0 /* escape empty args as "" */) return arg;
+
+        return '"' + arg.replace(/"/g, '\\"') + '"';
+    }
+}
+
 
 /**
  * Update the helper module's internal VMRun state (to prevent needing to pass VMRun in each function call)
@@ -227,7 +243,7 @@ export const execute_stdout_wrapper = async (passed_vmrun: vmr_type, vm: object,
     if (skip) {
         return await passed_vmrun.runProgramInGuest(vmx_path, program, program_args, opts);
     }
-    
+
     // create temp file on guest to recieve stdout
     let out_temp_file = await passed_vmrun.createTempfileInGuest(vmx_path);
 
@@ -258,7 +274,15 @@ export const execute_stdout_wrapper = async (passed_vmrun: vmr_type, vm: object,
     // add the pipe after each line
     const pipe = is_windows ? ">" : "|";
     const escaped_out_temp_file = (out_temp_file + "").replace(/[\/\\]*$/, ""); // excerpt from node-vmrun
-    const joined_prog = program + " " + program_args.join(" ");
+
+    let joined_prog = program;
+    if (program_args) {
+        for (const arg of program_args) {
+            joined_prog += " " + escape_arg(arg, is_windows);
+        }
+    }
+
+
     console.log(`Joined program: ${joined_prog}`);
     const script = joined_prog.split("\n").map(line => line + " " + pipe + " " + escaped_out_temp_file).join("\n");
 
@@ -295,6 +319,9 @@ export const execute_stdout_wrapper = async (passed_vmrun: vmr_type, vm: object,
         result.local.stderr = exec_res.stderr;
         result.local.stdout = exec_res.stdout;
     } catch (err) {
+        // output script to console
+        console.error(`Script:\n${script}`);
+
         // delete temp files on guest then rethrow
         await passed_vmrun.deleteFileInGuest(vmx_path, out_temp_file);
         await passed_vmrun.deleteFileInGuest(vmx_path, script_temp_file_ext_renamed);
