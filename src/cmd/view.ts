@@ -99,7 +99,7 @@ const call: CommandCall = async (in_message, data) => {
     // generate a guaranteed unique filename for the screenshot (loop until the file doesn't exist, unlikely to ever happen)
     do {
         image_name = `${vm_id}_${uuidv4()}.png`;
-        image_path = path.resolve(path.join(config.vmware["screenshot_dir"] || "./screenshots/", image_name)); // absolute path
+        image_path = path.resolve(path.join(config.vmware["tmp_dir"] || "./vm_tmp/", image_name)); // absolute path
     } while (fs.existsSync(image_path));
 
     // create the screenshot directory if it doesn't exist (prevents access denied errors)

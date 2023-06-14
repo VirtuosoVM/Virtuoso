@@ -5,6 +5,7 @@ import { CommandCall } from "../types";
 import * as embeds from "../embed_generator";
 
 import * as fs from "fs";
+import { execute_stdout_wrapper } from "../helper_funcs";
 
 const call: CommandCall = async (in_message, data) => {
     const { args, config, booting_vms, shutting_down_vms, cased_args, VMRun, helper_functions } = data;
@@ -128,7 +129,7 @@ const call: CommandCall = async (in_message, data) => {
     
     out_message.edit({ embeds: [embed] });
 
-    VMRun_mod.runProgramInGuest(vmx_path, program, program_args, opts).then((result) => {
+    execute_stdout_wrapper(VMRun_mod, vm, vmx_path, program, program_args, opts, mode_txt === ">").then((result) => {
         console.log(result);
         out_message.delete();
 
@@ -138,12 +139,8 @@ const call: CommandCall = async (in_message, data) => {
             return;
         }
 
-        if (result.stdout && result.stdout.length > 0) {
-            in_message.reply(`\`\`\`${result.stdout}\`\`\``);
-        }
-
-        if (result.stderr && result.stderr.length > 0) {
-            in_message.reply(`\`\`\`${result.stderr}\`\`\``);
+        if (result.guest_out && result.guest_out.length > 0) {
+            in_message.reply(`\`\`\`${result.guest_out}\`\`\``);
         }
     }).catch((err) => {
         console.error(err);
@@ -153,6 +150,11 @@ const call: CommandCall = async (in_message, data) => {
 
         if (!err || !err.message) {
             in_message.reply("An unknown error occurred. Please consult the bot administrator.");
+            return;
+        }
+
+        if (err.message.startsWith("Timeout waiting for file to exist")) {
+            in_message.reply("The result of the command could not be loaded. The command may have still executed. Consult the bot administrator if you need the result.");
             return;
         }
 

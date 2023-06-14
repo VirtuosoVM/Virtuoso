@@ -5,6 +5,7 @@ import { CommandCall } from "../types";
 import * as fs from "fs";
 
 import * as embeds from "../embed_generator";
+import { execute_stdout_wrapper } from "../helper_funcs";
 
 const call: CommandCall = async (in_message, data) => {
     const { args, cased_args, config, VMRun, helper_functions, booting_vms, shutting_down_vms } = data;
@@ -56,7 +57,7 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
-    let embed = new embeds.QueryingPowerStateEmbed(vm_id);
+    const embed = new embeds.QueryingPowerStateEmbed(vm_id);
 
     const out_message = await in_message.reply({ embeds: [embed] });
 
@@ -119,6 +120,13 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
+    if (typeof python_path !== "string") {
+        out_message.delete();
+        in_message.reply("Python path is not a string. Please consult the bot administrator.");
+        console.error(`Python path is not a string in config for VM ${vm_id}`);
+        return;
+    }
+
     // get full path to conductor caller from config
     const conductor_caller_path = vm["conductor_caller"];
 
@@ -129,45 +137,69 @@ const call: CommandCall = async (in_message, data) => {
         return;
     }
 
+    if (typeof conductor_caller_path !== "string") {
+        out_message.delete();
+        in_message.reply("Conductor caller path is not a string. Please consult the bot administrator.");
+        console.error(`Conductor caller path is not a string in config for VM ${vm_id}`);
+        return;
+    }
+
+    if (vm["is_windows"] === undefined) {
+        out_message.delete();
+        in_message.reply("is_windows not specified in config. Please consult the bot administrator.");
+        console.error(`is_windows not specified in config for VM ${vm_id}`);
+        return;
+    }
+
+    if (typeof vm["is_windows"] !== "boolean") {
+        out_message.delete();
+        in_message.reply("is_windows is not a boolean. Please consult the bot administrator.");
+        console.error(`is_windows is not a boolean in config for VM ${vm_id}`);
+        return;
+    }
+
     // use conductor via vmrun command execution to type the characters
-    VMRun_mod.runProgramInGuest(vmx_path, python_path, [conductor_caller_path, "type", what_to_type]).then((result) => {
+    execute_stdout_wrapper(VMRun_mod, vm, vmx_path, python_path, [conductor_caller_path, "type", what_to_type], {}).then((result) => {
         console.log(result);
 
-        if (result.stderr && result.stderr.length > 0) {
+        if (result.local.stderr && result.local.stderr.length > 0) {
             out_message.delete();
             in_message.reply("A script error occurred while typing the characters. Please consult the bot administrator.");
-            console.error(`Error typing characters for VM ${vm_id}: ${result.stderr}`);
+            console.error(`Error typing characters for VM ${vm_id}: ${result.local.stderr}`);
             return;
         }
 
         // check stdout starts with OK
         // TODO: fix stdout, it isn't receiving any data from the script
-        if (!result.stdout.startsWith("OK")) {
+        if (!result.guest_out.startsWith("OK")) {
             // if it starts with ERR, send back the text after the last :
-            if (result.stdout.startsWith("ERR")) {
+            if (result.guest_out.startsWith("ERR")) {
                 out_message.delete();
-                in_message.reply(`An error occurred while typing the characters: ${result.stdout.split(":").pop()}`);
-                console.error(`Error typing characters for VM ${vm_id}: ${result.stdout}`);
+                in_message.reply(`An error occurred while typing the characters: ${result.guest_out.split(":").pop()}`);
+                console.error(`Error typing characters for VM ${vm_id}: ${result.guest_out}`);
                 return;
             }
 
             out_message.delete();
             in_message.reply("An indeterminate error occurred while typing the characters. Please consult the bot administrator.");
-            console.error(`Error typing characters for VM ${vm_id}: ${result.stdout}`);
+            console.error(`Error typing characters for VM ${vm_id}: ${result.guest_out}`);
             return;
         }
 
-        embed = new embeds.SuccessEmbed()
-            .setTitle("Characters typed successfully")
-            .setDescription(`Typed characters: \`${what_to_type}\``);
-
-        out_message.edit({ embeds: [embed] });
+        out_message.delete();
+        in_message.react("✅");
     }).catch((err) => {
         out_message.delete();
 
         if (err.message && err.message.startsWith("A file was not found")) {
             in_message.reply("Python or conductor caller not found in VM. Please consult the bot administrator.");
             console.error(`Python or conductor caller not found in VM for VM ${vm_id}`);
+            return;
+        }
+        
+        if (err.message && err.message.startsWith("Timeout waiting for file to exist")) {
+            in_message.reply("The result of the command could not be loaded. The command may have still executed. Consult the bot administrator if you need the result.");
+            console.error(`Timeout waiting for file to exist for VM ${vm_id}`);
             return;
         }
 

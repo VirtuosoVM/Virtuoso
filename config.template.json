@@ -46,6 +46,7 @@
                 "name": "Name of the VM",
                 "description": "Description of the VM",
                 "vmx": "path to the vmx file",
+                "is_windows": true,
                 "python_path": "full path to the python executable (in guest os) [https://www.python.org/downloads/]",
                 "conductor_caller": "full path to the virtuoso conductor caller script (in guest os) [https://github.com/VirtuosoVM/Conductor]",
                 "options_override": {

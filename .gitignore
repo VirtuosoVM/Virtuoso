@@ -123,4 +123,4 @@ node_modules/
 # bot specific
 config.json
 .dccache
-/screenshots/
+/vm_tmp/
