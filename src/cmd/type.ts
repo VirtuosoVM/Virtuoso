@@ -200,7 +200,17 @@ const call: CommandCall = async (in_message, data) => {
             // if it starts with ERR, send back the text after the last :
             if (result.guest_out.startsWith("ERR")) {
                 out_message.delete();
-                in_message.reply(`An error occurred while typing the characters: ${result.guest_out.split(":").pop()}`);
+
+                const parts = result.guest_out.split(":");
+
+                // if the second part is CONNREF, the agent is not running
+                if (parts[1] === "CONNREF") {
+                    in_message.reply("Conductor agent is not running in VM. Please consult the bot administrator.");
+                    console.error(`Conductor agent is not running in VM for VM ${vm_id}`);
+                    return;
+                }
+
+                in_message.reply(`An error occurred while typing the characters: ${parts[parts.length - 1]}`);
                 console.error(`Error typing characters for VM ${vm_id}: ${result.guest_out}`);
                 return;
             }
